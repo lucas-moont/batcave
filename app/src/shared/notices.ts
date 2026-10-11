@@ -7,6 +7,7 @@ import {
   type StoreSnapshot,
 } from './types'
 import { attentionCopy, caseHeader, folderName } from './view'
+import { STANDARD_WORDS, type Words } from './words'
 
 /** The needs-you alerts worth announcing; a stalled task is not news. */
 const ALERT_KINDS = ['permission', 'error', 'waiting', 'reply'] as const satisfies readonly AttentionKind[]
@@ -64,13 +65,18 @@ const isAnnounced = (a: AttentionItem): a is AttentionItem & { kind: AlertKind }
 const alertKey = (a: AttentionItem) => `${a.sessionId}:${a.kind}:${a.at}`
 
 /** News between two snapshots. The first snapshot announces nothing: it is the state, not news. */
-export function diffNotices(prev: StoreSnapshot | undefined, next: StoreSnapshot): Notice[] {
+export function diffNotices(
+  prev: StoreSnapshot | undefined,
+  next: StoreSnapshot,
+  words: Words = STANDARD_WORDS,
+): Notice[] {
   if (!prev) return []
+  const { terms, voice } = words
   const before = new Map(prev.sessions.map((s) => [s.sessionId, s]))
   const after = new Map(next.sessions.map((s) => [s.sessionId, s]))
   const title = (id: string) => {
     const s = after.get(id) ?? before.get(id)
-    return s ? caseHeader(s).title : 'Unknown case'
+    return s ? caseHeader(s, words).title : voice.unknown(terms)
   }
   const notice = (
     s: Pick<SessionSnapshot, 'sessionId'>,
@@ -85,7 +91,7 @@ export function diffNotices(prev: StoreSnapshot | undefined, next: StoreSnapshot
   const alerts = next.attention
     .filter(isAnnounced)
     .filter((a) => !known.has(alertKey(a)))
-    .map((a) => notice(a, { key: alertKey(a), kind: a.kind, at: a.at, ...attentionCopy(a) }))
+    .map((a) => notice(a, { key: alertKey(a), kind: a.kind, at: a.at, ...attentionCopy(a, words) }))
 
   const tasks: Notice[] = []
   const opened: Notice[] = []
@@ -98,8 +104,8 @@ export function diffNotices(prev: StoreSnapshot | undefined, next: StoreSnapshot
           key: `${s.sessionId}:opened`,
           kind: 'session-opened',
           at: s.lastActivityAt ?? '',
-          stamp: 'Case opened',
-          line: folderName(s.cwd ?? '') || 'New session',
+          stamp: terms.stamp['session-opened'],
+          line: folderName(s.cwd ?? '') || voice.noticeLine.opened,
         }),
       )
       continue
@@ -112,7 +118,7 @@ export function diffNotices(prev: StoreSnapshot | undefined, next: StoreSnapshot
           key: `${s.sessionId}:task:${t.id}`,
           kind: 'task-done',
           at: t.history.at(-1)?.at ?? '',
-          stamp: 'Task done',
+          stamp: terms.stamp['task-done'],
           line: t.subject,
         }),
       )
@@ -125,8 +131,8 @@ export function diffNotices(prev: StoreSnapshot | undefined, next: StoreSnapshot
         key: `${s.sessionId}:closed`,
         kind: 'session-closed',
         at: s.lastActivityAt ?? '',
-        stamp: 'Case closed',
-        line: 'Session ended',
+        stamp: terms.stamp['session-closed'],
+        line: voice.noticeLine.closed,
       }),
     )
 
