@@ -18,7 +18,7 @@ import {
   watchRow,
   type WatchRow,
 } from '@shared/view'
-import { useWords } from '../hooks'
+import { useWords } from '../words'
 import type { SheetTarget } from './CaseDetail'
 import type { Tab } from './Header'
 import { PluginHint } from './PluginHint'

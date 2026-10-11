@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'motion/react'
 import type { MascotMood } from '@shared/view'
-import { useWords } from '../hooks'
+import { useWords } from '../words'
 import { BatClawd } from './BatClawd'
 import { BatEmblem } from './BatEmblem'
 import { Icon } from './Icon'

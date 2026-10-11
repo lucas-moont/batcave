@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'motion/react'
 import type { AttentionItem, SessionSnapshot } from '@shared/types'
 import { ALERT_INK, attentionCopy, caseHeader, folderName, orderCases, relativeTime } from '@shared/view'
-import { useWords } from '../hooks'
+import { useWords } from '../words'
 import { BatClawd } from './BatClawd'
 import { Beat, Glow } from './Live'
 import { TerminalButton } from './TerminalButton'

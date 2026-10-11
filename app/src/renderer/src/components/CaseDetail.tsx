@@ -1,6 +1,6 @@
 import type { AttentionItem, SessionSnapshot, TaskStatus } from '@shared/types'
 import { attentionCopy, caseHeader, plainPreview, relativeTime, taskLabel } from '@shared/view'
-import { useWords } from '../hooks'
+import { useWords } from '../words'
 import { Icon, type IconName } from './Icon'
 import { Section } from './Section'
 import { TerminalButton } from './TerminalButton'
