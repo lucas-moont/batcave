@@ -55,7 +55,7 @@ export interface Voice {
     unheard: { title: string; hint: string }
     noCases: { title: (t: Terms) => string; hint: string }
   }
-  /** The case detail: its back button, its terminal button, its sections. */
+  /** The case detail: its back button and its sections. */
   detail: {
     back: string
     tasks: string
@@ -340,6 +340,8 @@ export const STANDARD_VOICE: Voice = {
     sound: 'Sound',
     animations: { label: 'Animations', hint: 'Intro, flying mascot, typewriter and transitions' },
     atmosphere: { label: 'Rain', hint: (t) => `Gotham weather behind the ${lower(t.case.many)}` },
+    // "Case files" and "Night report" are the two Layouts' names (CONTEXT.md, Layout), not the Case
+    // term: a Lexicon that renames Case doesn't rename the Layout.
     layout: { label: 'Night report', hint: 'Read the panel as one typed report instead of case files' },
     onTop: { label: 'Always on top', hint: 'Keep the window above everything else' },
     opacity: 'Opacity',
@@ -355,6 +357,7 @@ export const STANDARD_VOICE: Voice = {
     },
     eachKind: 'Each kind of news',
     toast: {
+      // "needs you" is a verb here, as in the quiet hint, not the tab's name.
       needsYou: { label: 'Claude needs you', hint: 'A permission, an error or a question' },
       reply: { label: 'Reply ready', hint: 'Claude finished replying' },
       taskDone: {
