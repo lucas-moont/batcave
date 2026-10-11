@@ -5,6 +5,9 @@ import { rendererSources, sourcesUnder } from './rendererSources'
 /** Props and fields that carry words a user reads or hears. */
 const TEXT_PROPS = new Set([
   'aria-label',
+  'aria-description',
+  'aria-roledescription',
+  'aria-valuetext',
   'title',
   'label',
   'hint',
@@ -13,10 +16,14 @@ const TEXT_PROPS = new Set([
   'text',
   'placeholder',
   'alt',
+  // The panel's own components: a note line's state, a row's stamp.
+  'state',
+  'stamp',
 ])
 
-/** Object fields that carry words: the props above, but not `alt`, which in code names the Alt key. */
-const TEXT_FIELDS = new Set([...TEXT_PROPS].filter((name) => name !== 'alt' && name !== 'aria-label'))
+/** Object fields that carry words. Not `alt` (in code it names the Alt key), nor `state` or `stamp`
+ * (in data they hold keys like 'off'), nor the aria props, which only live in JSX. */
+const TEXT_FIELDS = new Set(['title', 'label', 'hint', 'kicker', 'aside', 'text', 'placeholder'])
 
 /** Two words in a row, like a label or a sentence ("Back to the list", " running"). */
 const PROSE = /[A-Za-z’']{2,}\s+[A-Za-z’']{2,}|^\s+[a-z’']{2,}/
@@ -75,7 +82,7 @@ function inlineText(path: string, text: string): string[] {
   return found
 }
 
-describe("the renderer's UI text", () => {
+describe('the UI text', () => {
   // A Theme's Voice and Lexicon swap words in the catalogue (shared/words.ts); a word written in a
   // component would stay the same under every Theme.
   it('all comes from the catalogue', () => {
