@@ -51,6 +51,20 @@ export interface Voice {
     unheard: { title: string; hint: string }
     noCases: { title: (t: Terms) => string; hint: string }
   }
+  /** The case detail: its back button, its terminal button, its sections. */
+  detail: {
+    back: string
+    terminal: string
+    tasks: string
+    subagents: string
+    background: string
+    lastWords: string
+    running: (n: number) => string
+    /** A task row read aloud: its words, then its state. */
+    taskRow: (task: string, state: string) => string
+  }
+  /** Who spoke, in a case's last words. */
+  speaker: { user: string; assistant: string }
   /** "Case #b47c0d". */
   caseNumber: (t: Terms, number: string) => string
   /** A case's progress bar, read aloud: "3/5 tasks done". */
@@ -139,6 +153,17 @@ export const STANDARD_VOICE: Voice = {
       hint: 'Start Claude Code in a terminal and it shows up here.',
     },
   },
+  detail: {
+    back: 'Back to the list',
+    terminal: 'Terminal',
+    tasks: 'Tasks',
+    subagents: 'Subagents',
+    background: 'In the background',
+    lastWords: 'Last words',
+    running: (n) => `${n} running`,
+    taskRow: (task, state) => `${task}, ${lower(state)}`,
+  },
+  speaker: { user: 'You', assistant: 'Claude' },
   caseNumber: (t, number) => `${t.case.one} ${number}`,
   tasksDone: (progress) => `${progress} tasks done`,
   time: { justNow: 'just now', ago: (age) => `${age} ago` },
