@@ -1,29 +1,28 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { THEME_IDS, type ThemeId } from '../src/shared/themes'
 import { RENDERER, rendererSources } from './rendererSources'
 
 type Rgb = [number, number, number]
 
-const theme = readFileSync(join(RENDERER, 'styles/theme.css'), 'utf8')
-
-/** The Theme's variables, as written in its :root block. */
-const variables = new Map(
-  [...(/:root\s*\{([^}]*)\}/.exec(theme)?.[1] ?? '').matchAll(/(--[\w-]+):\s*([^;]+);/g)].map(
-    (m) => [m[1]!, m[2]!.trim()] as const,
-  ),
-)
+/** A Theme's variables, as written in its stylesheet's scoped block. */
+function variablesOf(theme: ThemeId): Map<string, string> {
+  const css = readFileSync(join(RENDERER, `styles/themes/${theme}.css`), 'utf8')
+  const block = new RegExp(`:root\\[data-theme='${theme}'\\]\\s*\\{([^}]*)\\}`).exec(css)?.[1] ?? ''
+  return new Map([...block.matchAll(/(--[\w-]+):\s*([^;]+);/g)].map((m) => [m[1]!, m[2]!.trim()] as const))
+}
 
 /** A variable's color as [r, g, b], following var() aliases down to a hex value. */
-function rgb(name: string): Rgb {
+function rgb(variables: Map<string, string>, name: string): Rgb {
   const value = variables.get(name)
-  if (!value) throw new Error(`theme.css: no ${name}`)
+  if (!value) throw new Error(`no ${name}`)
   const alias = /^var\((--[\w-]+)\)$/.exec(value)
-  if (alias) return rgb(alias[1]!)
+  if (alias) return rgb(variables, alias[1]!)
   const hex = /^#([0-9a-f]{6})$/i.exec(value)
   if (!hex)
     throw new Error(
-      `theme.css: ${name} is ${value}, not an opaque hex: the contrast test can't measure a color-mix() or translucent text color`,
+      `${name} is ${value}, not an opaque hex: the contrast test can't measure a color-mix() or translucent text color`,
     )
   return [0, 2, 4].map((i) => parseInt(hex[1]!.slice(i, i + 2), 16)) as Rgb
 }
@@ -42,9 +41,6 @@ function ratio(a: Rgb, b: Rgb): number {
   const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x) as [number, number]
   return (hi + 0.05) / (lo + 0.05)
 }
-
-/** The contrast between two of the Theme's variables. */
-const contrast = (a: string, b: string) => ratio(rgb(a), rgb(b))
 
 /** Every variable the renderer's CSS paints text (or an icon) with. */
 function textColors(): string[] {
@@ -70,27 +66,34 @@ const GROUNDS = [
 ]
 
 /**
- * VENGEANCE's approved colors that read under 4.5:1, with the reason each was kept, so the test
- * can hold every other text color, and every new Theme, to the line. Nothing on screen changed
- * when colors became variables (#72); whether to lift these is decided in #97.
+ * Each Theme's approved colors that read under 4.5:1, with the reason each was kept, so the test
+ * can hold every other text color, and every new Theme, to the line. Only VENGEANCE has any:
+ * nothing on screen changed when colors became variables (#72), and whether to lift them is
+ * decided in #97. A new Theme starts with none.
  */
-const VENGEANCE_EXCEPTIONS: Record<string, string> = {
-  '--accent': 'the wordmark, in the red measured from the film title logo, at display size',
-  '--signal-hot': 'small lit marks and warnings; the files-layout stamp ink',
-  '--in-progress': 'a running task in the files layout, lit in Hot Signal like the live dots',
-  '--stamp-hot': 'the approved files-layout stamp ink (the Night Report lifts it to --ink-hot)',
-  '--brick': 'the approved soft stamp ink, also on the failed state',
-  '--stamp-soft': 'the approved files-layout soft stamp ink (the Night Report lifts it to --ink-soft)',
-  '--ash-dim': 'struck-through done tasks, meant to recede',
-  '--line': 'the case-detail row chevron, a decorative icon',
-  '--ink-hot': 'the pen ink, tuned to 4.5:1 on black where the report sits; short only on hover tints',
-  '--ink-soft': 'the soft pen ink, tuned to 4.5:1 on black where the report sits; short only on hover tints',
+const EXCEPTIONS: Record<ThemeId, Record<string, string>> = {
+  'the-batman-2022': {
+    '--accent': 'the wordmark, in the red measured from the film title logo, at display size',
+    '--signal-hot': 'small lit marks and warnings; the files-layout stamp ink',
+    '--in-progress': 'a running task in the files layout, lit in Hot Signal like the live dots',
+    '--stamp-hot': 'the approved files-layout stamp ink (the Night Report lifts it to --ink-hot)',
+    '--brick': 'the approved soft stamp ink, also on the failed state',
+    '--stamp-soft': 'the approved files-layout soft stamp ink (the Night Report lifts it to --ink-soft)',
+    '--ash-dim': 'struck-through done tasks, meant to recede',
+    '--line': 'the case-detail row chevron, a decorative icon',
+    '--ink-hot': 'the pen ink, tuned to 4.5:1 on black where the report sits; short only on hover tints',
+    '--ink-soft':
+      'the soft pen ink, tuned to 4.5:1 on black where the report sits; short only on hover tints',
+  },
 }
 
-describe("the Theme's text colors", () => {
+describe.each(THEME_IDS)("%s's text colors", (theme) => {
+  const variables = variablesOf(theme)
+  const contrast = (a: string, b: string) => ratio(rgb(variables, a), rgb(variables, b))
   const colors = textColors()
+  const exceptions = EXCEPTIONS[theme]
 
-  it.each(colors.filter((c) => !(c in VENGEANCE_EXCEPTIONS)))(
+  it.each(colors.filter((c) => !(c in exceptions)))(
     '%s reads at 4.5:1 or better on every ground',
     (color) => {
       for (const ground of GROUNDS)
@@ -99,7 +102,7 @@ describe("the Theme's text colors", () => {
   )
 
   // A stale exception would hide a color that no longer needs one, or no longer exists.
-  it.each(Object.keys(VENGEANCE_EXCEPTIONS))('%s is a text color that still needs its exception', (color) => {
+  it.each(Object.keys(exceptions))('%s is a text color that still needs its exception', (color) => {
     expect(colors).toContain(color)
     expect(Math.min(...GROUNDS.map((ground) => contrast(color, ground)))).toBeLessThan(4.5)
   })
