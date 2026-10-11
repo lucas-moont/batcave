@@ -3,7 +3,7 @@ import { trayLook } from '../src/main/trayMenu'
 import { diffNotices } from '../src/shared/notices'
 import type { AttentionItem, SessionSnapshot, StoreSnapshot } from '../src/shared/types'
 import { attentionCopy, caseHeader } from '../src/shared/view'
-import { STANDARD_WORDS, type Words } from '../src/shared/words'
+import { STANDARD_TERMS, STANDARD_WORDS, type Words } from '../src/shared/words'
 
 /** A Lexicon in the style of the jury's §5: Nolan's ops, a renamed stamp and count. */
 const opsWords: Words = {
@@ -29,6 +29,13 @@ const session = (id: string, over: Partial<SessionSnapshot> = {}): SessionSnapsh
 
 const snapshot = (sessions: SessionSnapshot[], attention: AttentionItem[] = []): StoreSnapshot =>
   ({ sessions, attention }) as StoreSnapshot
+
+describe('the standard needs-you count', () => {
+  it('counts what needs you, in the singular for one', () => {
+    expect(STANDARD_TERMS.needsYou.count(1)).toBe('1 needs you')
+    expect(STANDARD_TERMS.needsYou.count(5)).toBe('5 need you')
+  })
+})
 
 describe('the words', () => {
   it("are a Theme's own when it passes them", () => {

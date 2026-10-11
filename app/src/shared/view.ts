@@ -1,14 +1,6 @@
 // Pure presentation rules shared by the window and its tests.
 import { ATTENTION_URGENCY } from './types'
-import type {
-  AttentionItem,
-  LiveStatus,
-  RunStatus,
-  SessionSnapshot,
-  StoreSnapshot,
-  Task,
-  TaskStatus,
-} from './types'
+import type { AttentionItem, SessionSnapshot, StoreSnapshot, Task, TaskStatus } from './types'
 import { STANDARD_WORDS, type Words } from './words'
 
 export type MascotMood = 'sleeping' | 'flying' | 'alarmed'
@@ -54,9 +46,6 @@ const humanize = (code: string): string => {
   const words = code.replace(/[_-]+/g, ' ').trim()
   return words.charAt(0).toUpperCase() + words.slice(1)
 }
-
-/** "5 need you", "1 needs you", in the standard words (until every caller passes its own). */
-export const needsYouCount = STANDARD_WORDS.terms.needsYou.count
 
 /** The stamp and detail line of a needs-you card. */
 export function attentionCopy(item: AttentionItem, { terms, voice }: Words = STANDARD_WORDS): CardCopy {
@@ -154,9 +143,6 @@ const stripEmphasis = (text: string): string =>
 const PREVIEW_READ = 600
 const PREVIEW_MAX = 280
 
-/** How each status reads in the window, so a list row and its drawer always agree. */
-export const LIVE_STATUS_LABEL: Record<LiveStatus, string> = STANDARD_WORDS.terms.live
-export const TASK_STATUS_LABEL: Record<TaskStatus, string> = STANDARD_WORDS.terms.task
 /** Tasks as a typist marks them (the night report). */
 export const TYPED_BOX: Record<TaskStatus, string> = {
   pending: '[ ]',
@@ -164,8 +150,6 @@ export const TYPED_BOX: Record<TaskStatus, string> = {
   completed: '[x]',
   deleted: '[-]',
 }
-
-export const RUN_STATUS_LABEL: Record<RunStatus, string> = STANDARD_WORDS.terms.run
 
 /**
  * Cases in display order: those that need you first (most urgent first, as the attention list

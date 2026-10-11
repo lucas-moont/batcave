@@ -6,7 +6,6 @@ import {
   folderName,
   lastReply,
   mascotMood,
-  needsYouCount,
   orderCases,
   plainPreview,
   pluginSilent,
@@ -363,12 +362,5 @@ describe('pluginSilent', () => {
   it('is not silent when every session has been heard, or in demos that do not say', () => {
     expect(pluginSilent({ sessions: [], attention: [], unheard: [] })).toBe(false)
     expect(pluginSilent({ sessions: [], attention: [] })).toBe(false)
-  })
-})
-
-describe('needsYouCount', () => {
-  it('counts what needs you, in the singular for one', () => {
-    expect(needsYouCount(1)).toBe('1 needs you')
-    expect(needsYouCount(5)).toBe('5 need you')
   })
 })
