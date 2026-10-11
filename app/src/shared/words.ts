@@ -44,6 +44,17 @@ export interface Voice {
     hide: string
     settings: string
   }
+  /** The case files' empty states. */
+  empty: {
+    quiet: { title: string; hint: (t: Terms) => string }
+    /** Nothing reported, but the plugin misses some sessions, so that proves nothing. */
+    unheard: { title: string; hint: string }
+    noCases: { title: (t: Terms) => string; hint: string }
+  }
+  /** "Case #b47c0d". */
+  caseNumber: (t: Terms, number: string) => string
+  /** A case's progress bar, read aloud: "3/5 tasks done". */
+  tasksDone: (progress: string) => string
   time: {
     justNow: string
     ago: (age: string) => string
@@ -120,6 +131,16 @@ export const STANDARD_VOICE: Voice = {
     hide: 'Hide to tray',
     settings: 'Settings',
   },
+  empty: {
+    quiet: { title: 'All quiet in Gotham.', hint: (t) => `Nothing ${lower(t.needsYou.label)} right now.` },
+    unheard: { title: 'Nothing reported.', hint: 'The plugin does not reach every session yet.' },
+    noCases: {
+      title: (t) => `No open ${lower(t.case.many)}.`,
+      hint: 'Start Claude Code in a terminal and it shows up here.',
+    },
+  },
+  caseNumber: (t, number) => `${t.case.one} ${number}`,
+  tasksDone: (progress) => `${progress} tasks done`,
   time: { justNow: 'just now', ago: (age) => `${age} ago` },
   alertLine: {
     someTool: 'A tool',
