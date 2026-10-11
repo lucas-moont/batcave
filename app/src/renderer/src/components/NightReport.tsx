@@ -216,11 +216,7 @@ function CaseParagraph({
                 </>
               )}
             </p>
-            <TerminalButton
-              sessionId={session.sessionId}
-              label={voice.detail.terminal}
-              className="notes__terminal"
-            />
+            <TerminalButton sessionId={session.sessionId} labelled className="notes__terminal" />
             <Notes session={session} onOpenSheet={onOpenSheet} />
           </motion.div>
         )}

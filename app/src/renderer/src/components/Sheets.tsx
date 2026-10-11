@@ -135,13 +135,12 @@ function Timing({
   now: Date
 }) {
   const words = useWords()
-  const { voice } = words
   const startedAgo = ago(started, now, words)
   const endedAgo = ended && ago(ended, now, words)
-  const parts = [startedAgo && voice.drawer.started(startedAgo), endedAgo && endedAs(endedAgo)].filter(
+  const parts = [startedAgo && words.voice.drawer.started(startedAgo), endedAgo && endedAs(endedAgo)].filter(
     Boolean,
   )
-  return parts.length ? <Field label={voice.drawer.timing}>{parts.join(' · ')}</Field> : null
+  return parts.length ? <Field label={words.voice.drawer.timing}>{parts.join(' · ')}</Field> : null
 }
 
 function JobBody({ job, now }: { job: BackgroundJob; now: Date }) {

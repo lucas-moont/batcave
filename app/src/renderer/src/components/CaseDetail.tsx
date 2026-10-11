@@ -58,11 +58,7 @@ export function CaseDetail({
           <span className="case-number">{voice.caseNumber(terms, number)}</span>
           <h2 className="detail__title">{title}</h2>
         </div>
-        <TerminalButton
-          sessionId={session.sessionId}
-          label={voice.detail.terminal}
-          className="detail__terminal"
-        />
+        <TerminalButton sessionId={session.sessionId} labelled className="detail__terminal" />
       </div>
 
       <div className="detail__body">

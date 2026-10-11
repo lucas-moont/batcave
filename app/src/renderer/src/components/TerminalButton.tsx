@@ -33,12 +33,12 @@ export function useTerminalJump(sessionId: string) {
 
 export function TerminalButton({
   sessionId,
-  label,
+  labelled = false,
   className = '',
 }: {
   sessionId: string
   /** Show a word next to the icon (the case detail has room for one). */
-  label?: string
+  labelled?: boolean
   className?: string
 }) {
   const { voice } = useWords()
@@ -46,7 +46,7 @@ export function TerminalButton({
   return (
     <span className={`terminal-button ${className}`}>
       <button
-        className={`icon-button${label ? ' icon-button--labelled' : ''}`}
+        className={`icon-button${labelled ? ' icon-button--labelled' : ''}`}
         onPointerEnter={warm}
         onFocus={warm}
         onClick={go}
@@ -55,7 +55,7 @@ export function TerminalButton({
         title={voice.terminal.go}
       >
         <Icon name="terminal" />
-        {label && <span>{label}</span>}
+        {labelled && <span>{voice.detail.terminal}</span>}
       </button>
       {copied && (
         <span className="terminal-button__note" role="status">
