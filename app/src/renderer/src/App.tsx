@@ -13,6 +13,7 @@ import { PluginHint } from './components/PluginHint'
 import { WatchStrip } from './components/WatchStrip'
 import { DetailSheet, SettingsSheet } from './components/Sheets'
 import { CalmContext, useCalm } from './calm'
+import { Wearing } from './theme'
 import { useNow, useSettings, useSnapshot, useStatus, useWindowMode } from './hooks'
 import './App.css'
 
@@ -88,111 +89,115 @@ export function App() {
 
   if (view === 'watch') {
     return (
-      <CalmContext value={calm}>
-        <WatchStrip sessions={sessions} attention={attention} layout={settings.layout} />
-      </CalmContext>
+      <Wearing theme={settings.theme}>
+        <CalmContext value={calm}>
+          <WatchStrip sessions={sessions} attention={attention} layout={settings.layout} />
+        </CalmContext>
+      </Wearing>
     )
   }
 
   return (
-    <CalmContext value={calm}>
-      <MotionConfig reducedMotion={calm ? 'always' : 'never'}>
-        <main className="app">
-          <Atmosphere rain={settings.rain && !calm} activity={activity} />
-          <Header
-            needsYou={attention.length}
-            mood={mood}
-            onFold={fold}
-            onWatch={() => batSignal.setMode('watch')}
-            onHide={batSignal.hide}
-          />
-          <Tabs
-            tab={activeTab}
-            counts={{ needs: attention.length, cases: sessions.length }}
-            onChange={(next) => {
-              // In the report, leaving the case notes closes the case opened there.
-              if (report && next === 'needs') setOpenCase(null)
-              setTab(next)
-            }}
-            onSettings={() => setSettingsOpen(true)}
-          />
+    <Wearing theme={settings.theme}>
+      <CalmContext value={calm}>
+        <MotionConfig reducedMotion={calm ? 'always' : 'never'}>
+          <main className="app">
+            <Atmosphere rain={settings.rain && !calm} activity={activity} />
+            <Header
+              needsYou={attention.length}
+              mood={mood}
+              onFold={fold}
+              onWatch={() => batSignal.setMode('watch')}
+              onHide={batSignal.hide}
+            />
+            <Tabs
+              tab={activeTab}
+              counts={{ needs: attention.length, cases: sessions.length }}
+              onChange={(next) => {
+                // In the report, leaving the case notes closes the case opened there.
+                if (report && next === 'needs') setOpenCase(null)
+                setTab(next)
+              }}
+              onSettings={() => setSettingsOpen(true)}
+            />
 
-          <div className="stage">
-            <div className="stage__scroll">
-              {!report && activeTab === 'needs' && pluginSilent(snapshot) && (
-                <PluginHint sessions={unheardCount(snapshot)} />
-              )}
-              {report ? (
-                <NightReport
-                  tab={activeTab}
-                  unheard={unheardCount(snapshot)}
-                  sessions={sessions}
-                  attention={attention}
-                  now={now}
-                  openCase={session ? openCase : null}
-                  onToggleCase={(id) => (openCase === id ? setOpenCase(null) : open(id))}
-                  onOpenAlert={openAttention}
-                  onOpenSheet={open}
-                />
-              ) : activeTab === 'needs' ? (
-                <AttentionList
-                  items={attention}
-                  sessions={sessions}
-                  now={now}
-                  quietIsKnown={!pluginSilent(snapshot)}
-                  onOpen={openAttention}
-                />
-              ) : (
-                <CaseList sessions={sessions} attention={attention} now={now} onOpen={(id) => open(id)} />
-              )}
-            </div>
-
-            <AnimatePresence>
-              {session && !report && (
-                <motion.div
-                  key="detail"
-                  className="stage__layer"
-                  initial={{ x: '100%' }}
-                  animate={{ x: 0 }}
-                  exit={{ x: '100%' }}
-                  transition={{ type: 'spring', stiffness: 380, damping: 36 }}
-                >
-                  <CaseDetail
-                    session={session}
+            <div className="stage">
+              <div className="stage__scroll">
+                {!report && activeTab === 'needs' && pluginSilent(snapshot) && (
+                  <PluginHint sessions={unheardCount(snapshot)} />
+                )}
+                {report ? (
+                  <NightReport
+                    tab={activeTab}
+                    unheard={unheardCount(snapshot)}
+                    sessions={sessions}
                     attention={attention}
                     now={now}
-                    onBack={() => setOpenCase(null)}
-                    onOpen={setSheet}
+                    openCase={session ? openCase : null}
+                    onToggleCase={(id) => (openCase === id ? setOpenCase(null) : open(id))}
+                    onOpenAlert={openAttention}
+                    onOpenSheet={open}
                   />
-                </motion.div>
-              )}
-            </AnimatePresence>
+                ) : activeTab === 'needs' ? (
+                  <AttentionList
+                    items={attention}
+                    sessions={sessions}
+                    now={now}
+                    quietIsKnown={!pluginSilent(snapshot)}
+                    onOpen={openAttention}
+                  />
+                ) : (
+                  <CaseList sessions={sessions} attention={attention} now={now} onOpen={(id) => open(id)} />
+                )}
+              </div>
 
-            <AnimatePresence>
-              {session && activeSheet && (
-                <DetailSheet
-                  key="sheet"
-                  session={session}
-                  target={activeSheet}
-                  now={now}
-                  onClose={() => setSheet(null)}
-                />
-              )}
-              {settingsOpen && (
-                <SettingsSheet
-                  key="settings"
-                  settings={settings}
-                  status={status}
-                  onChange={changeSettings}
-                  onClose={() => setSettingsOpen(false)}
-                />
-              )}
-            </AnimatePresence>
-          </div>
+              <AnimatePresence>
+                {session && !report && (
+                  <motion.div
+                    key="detail"
+                    className="stage__layer"
+                    initial={{ x: '100%' }}
+                    animate={{ x: 0 }}
+                    exit={{ x: '100%' }}
+                    transition={{ type: 'spring', stiffness: 380, damping: 36 }}
+                  >
+                    <CaseDetail
+                      session={session}
+                      attention={attention}
+                      now={now}
+                      onBack={() => setOpenCase(null)}
+                      onOpen={setSheet}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
-          {!calm && <BatSignalIntro />}
-        </main>
-      </MotionConfig>
-    </CalmContext>
+              <AnimatePresence>
+                {session && activeSheet && (
+                  <DetailSheet
+                    key="sheet"
+                    session={session}
+                    target={activeSheet}
+                    now={now}
+                    onClose={() => setSheet(null)}
+                  />
+                )}
+                {settingsOpen && (
+                  <SettingsSheet
+                    key="settings"
+                    settings={settings}
+                    status={status}
+                    onChange={changeSettings}
+                    onClose={() => setSettingsOpen(false)}
+                  />
+                )}
+              </AnimatePresence>
+            </div>
+
+            {!calm && <BatSignalIntro />}
+          </main>
+        </MotionConfig>
+      </CalmContext>
+    </Wearing>
   )
 }

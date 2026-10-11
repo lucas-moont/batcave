@@ -9,6 +9,7 @@ import type { StoreSnapshot } from '@shared/types'
 import { batSignal } from '../bridge'
 import { playCue } from '../cues'
 import { CalmContext, useCalm } from '../calm'
+import { Wearing } from '../theme'
 import { useSettings, useSnapshotState, useWindowMode } from '../hooks'
 import { useWords } from '../words'
 import { mascotMood } from '@shared/view'
@@ -100,48 +101,54 @@ export function Signal() {
   // In watch mode this window is the perch over the strip: just Bat-Clawd, standing watch.
   if (mode === 'watch') {
     return (
-      <CalmContext value={calm}>
-        <main className="perch">
-          <BatClawd mood={mascotMood(snapshot)} size={78} perched />
-        </main>
-      </CalmContext>
+      <Wearing theme={settings.theme}>
+        <CalmContext value={calm}>
+          <main className="perch">
+            <BatClawd mood={mascotMood(snapshot)} size={78} perched />
+          </main>
+        </CalmContext>
+      </Wearing>
     )
   }
   const needsYou = snapshot.attention.length
   const shown = layout ? notice : undefined
 
   return (
-    <CalmContext value={calm}>
-      <MotionConfig reducedMotion={calm ? 'always' : 'never'}>
-        <main className={`signal${side.below ? ' signal--below' : ''}${side.right ? ' signal--right' : ''}`}>
-          {/* One card at a time: the next waits for the last to leave, and the window shrinks
-              only when no card follows. */}
-          <AnimatePresence
-            mode="wait"
-            onExitComplete={() => {
-              if (!notice) void batSignal.setNoticeOut(false)
-            }}
+    <Wearing theme={settings.theme}>
+      <CalmContext value={calm}>
+        <MotionConfig reducedMotion={calm ? 'always' : 'never'}>
+          <main
+            className={`signal${side.below ? ' signal--below' : ''}${side.right ? ' signal--right' : ''}`}
           >
-            {shown && (
-              <NoticeCard
-                key={shown.key}
-                notice={shown}
-                onOpen={() => batSignal.setMode('panel', shown.sessionId)}
-                onHover={setHovered}
-              />
-            )}
-          </AnimatePresence>
-          <Disc
-            lit={needsYou > 0 || !!notice}
-            // Pulsing only while urgent news is out: a pending item can wait for hours, and a
-            // transparent window is costly to redraw 8 times a second all that time.
-            pulsing={!!shown && isUrgent(shown.kind)}
-            count={needsYou}
-            onOpen={() => batSignal.reopen()}
-          />
-        </main>
-      </MotionConfig>
-    </CalmContext>
+            {/* One card at a time: the next waits for the last to leave, and the window shrinks
+              only when no card follows. */}
+            <AnimatePresence
+              mode="wait"
+              onExitComplete={() => {
+                if (!notice) void batSignal.setNoticeOut(false)
+              }}
+            >
+              {shown && (
+                <NoticeCard
+                  key={shown.key}
+                  notice={shown}
+                  onOpen={() => batSignal.setMode('panel', shown.sessionId)}
+                  onHover={setHovered}
+                />
+              )}
+            </AnimatePresence>
+            <Disc
+              lit={needsYou > 0 || !!notice}
+              // Pulsing only while urgent news is out: a pending item can wait for hours, and a
+              // transparent window is costly to redraw 8 times a second all that time.
+              pulsing={!!shown && isUrgent(shown.kind)}
+              count={needsYou}
+              onOpen={() => batSignal.reopen()}
+            />
+          </main>
+        </MotionConfig>
+      </CalmContext>
+    </Wearing>
   )
 }
 
