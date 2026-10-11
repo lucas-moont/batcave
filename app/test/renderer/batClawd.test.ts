@@ -6,7 +6,8 @@ vi.hoisted(() => vi.stubGlobal('document', { hidden: true, addEventListener: () 
 afterAll(() => vi.unstubAllGlobals())
 
 import { BatClawd } from '../../src/renderer/src/components/BatClawd'
-import { BatEmblem, WINGS } from '../../src/renderer/src/components/BatEmblem'
+import { BatEmblem } from '../../src/renderer/src/components/BatEmblem'
+import { WINGS } from '../../src/shared/emblems'
 
 const POINTS = [...WINGS.matchAll(/(-?[\d.]+) (-?[\d.]+)/g)].map((m) => ({
   x: Number(m[1]),

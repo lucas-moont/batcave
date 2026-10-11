@@ -116,7 +116,7 @@ function CapeBehind({ style }: { style: CapeStyle }) {
 function Frame({ pose, gaze, className }: { pose: Pose; gaze: { x: number; y: number }; className: string }) {
   const wrapped = pose.cape === 'wrapped'
   // The Theme's emblem across the chest, between the cowl and the legs.
-  const { path: emblem } = useEmblem()
+  const emblem = useEmblem()
   return (
     <svg className={className} viewBox="-6 -1 28 13" shapeRendering="crispEdges" aria-hidden>
       <CapeBehind style={pose.cape} />
@@ -128,7 +128,7 @@ function Frame({ pose, gaze, className }: { pose: Pose; gaze: { x: number; y: nu
       {!wrapped && (
         <path
           className="clawd__emblem"
-          d={emblem}
+          d={emblem.path}
           transform={batAt(emblem, 8, 7, 7)}
           shapeRendering="geometricPrecision"
         />

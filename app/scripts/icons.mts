@@ -1,5 +1,5 @@
 // npm run icons: draws the tray and toast icons from the bat emblem, so the bat has
-// one source (BatEmblem.tsx). A disc like the Bat-Signal's own: dark glass at rest, lit red
+// one source (shared/emblems.ts). A disc like the Bat-Signal's own: dark glass at rest, lit red
 // with the bat in shadow when something needs you. resvg (WebAssembly) renders each size, and
 // the sizes Windows picks from per DPI are packed into one .ico (PNG entries, Vista and later).
 // A toast takes one PNG: the lit disc, since a toast is news.
@@ -20,11 +20,11 @@ const TRAY_PREVIEW_WIDTH = 224
 /** The bat the icons were drawn from, kept beside them so a test can tell when they fall behind. */
 export const DRAWN_FROM = join(OUT, 'drawn-from.txt')
 
-/** The WINGS path of BatEmblem.tsx, joined from its string pieces. */
+/** The WINGS path of shared/emblems.ts, joined from its string pieces. */
 export function emblemPath(source: string): string {
   const declaration = /const WINGS =([\s\S]*?)\n\n/.exec(source)?.[1]
   const pieces = declaration?.match(/'[^']*'/g)
-  if (!pieces?.length) throw new Error('BatEmblem.tsx: no WINGS path found')
+  if (!pieces?.length) throw new Error('emblems.ts: no WINGS path found')
   return pieces.map((p) => p.slice(1, -1)).join('')
 }
 
@@ -82,7 +82,7 @@ export function ico(images: { size: number; png: Uint8Array }[]): Buffer {
 async function main(): Promise<void> {
   const require = createRequire(import.meta.url)
   await initWasm(readFileSync(require.resolve('@resvg/resvg-wasm/index_bg.wasm')))
-  const wings = emblemPath(readFileSync(join(APP, 'src/renderer/src/components/BatEmblem.tsx'), 'utf8'))
+  const wings = emblemPath(readFileSync(join(APP, 'src/shared/emblems.ts'), 'utf8'))
   mkdirSync(OUT, { recursive: true })
   writeFileSync(DRAWN_FROM, `${wings}\n`)
   for (const [name, lit] of [

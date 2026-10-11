@@ -2,6 +2,7 @@
 // settings.json keeps; it names the film or comic, while each Theme's display name alludes to it.
 // A Theme's colors live in its stylesheet (renderer/src/styles/themes/<id>.css); what the main
 // process or the renderer's code needs lives here.
+import { emblem, WINGS, type Emblem } from './emblems'
 import { STANDARD_WORDS, type Words } from './words'
 
 export const THEME_IDS = ['the-batman-2022'] as const
@@ -20,6 +21,8 @@ export interface Theme {
   ground: string
   /** Its Lexicon and Voice: one object per Theme, so whatever memoises on the words stays put. */
   words: Words
+  /** Its bat: in the panel's masthead, on the disc, in the intro and on Bat-Clawd's chest. */
+  emblem: Emblem
 }
 
 export const THEMES: Record<ThemeId, Theme> = {
@@ -28,6 +31,7 @@ export const THEMES: Record<ThemeId, Theme> = {
     flag: 'vengeance',
     ground: '#000000',
     words: STANDARD_WORDS,
+    emblem: emblem(WINGS, 'wear'),
   },
 }
 
