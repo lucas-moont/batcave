@@ -63,6 +63,28 @@ export interface Voice {
     /** A task row read aloud: its words, then its state. */
     taskRow: (task: string, state: string) => string
   }
+  /** The night report layout. */
+  report: {
+    name: string
+    /** The dateline's date and time, typed. */
+    dateline: (now: Date) => string
+    signature: string
+    nil: (t: Terms) => string
+    /** Nothing reported, but the plugin misses some sessions. */
+    nilUnheard: string
+    unknown: (t: Terms) => string
+    caseNotes: (t: Terms) => string
+    noCases: (t: Terms) => string
+    /** "Now profiling the ignition sequence." */
+    now: (task: string) => string
+    filed: (done: number, total: number) => string
+    /** "Case #b47c0d, batmobile." */
+    file: (t: Terms, number: string, folder: string) => string
+    lastWord: string
+    nothingOnFile: string
+    /** The report's last line, which a Theme may vary with how much still awaits the user. */
+    end: (waiting: number) => string
+  }
   /** Who spoke, in a case's last words. */
   speaker: { user: string; assistant: string }
   /** "Case #b47c0d". */
@@ -117,6 +139,13 @@ export interface Words {
 /** A term inside a sentence: "Cases" reads "cases", a Theme's "Ops" reads "ops". */
 export const lower = (term: string): string => term.toLowerCase()
 
+/** A label read inside a sentence ("Now profiling …"): first letter lowered, its end stop dropped. */
+const asClause = (label: string) => (label.charAt(0).toLowerCase() + label.slice(1)).replace(/[.!?…]+$/, '')
+
+// Built once: a formatter is costly to make, and the dateline renders with every snapshot.
+const DAY = new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: '2-digit', month: 'short' })
+const TIME = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false })
+
 export const STANDARD_TERMS: Terms = {
   case: { one: 'Case', many: 'Cases' },
   needsYou: { label: 'Needs you', count: (n) => `${n} need${n === 1 ? 's' : ''} you` },
@@ -162,6 +191,23 @@ export const STANDARD_VOICE: Voice = {
     lastWords: 'Last words',
     running: (n) => `${n} running`,
     taskRow: (task, state) => `${task}, ${lower(state)}`,
+  },
+  report: {
+    name: 'Night report',
+    dateline: (now) => `${DAY.format(now).replace(',', '').toUpperCase()} · ${TIME.format(now)}`,
+    signature: 'Awaiting your signature',
+    nil: (t) => `Nothing awaits your signature. Every ${lower(t.case.one)} can carry on without you.`,
+    nilUnheard: 'Nothing reported from the sessions the plugin reaches.',
+    unknown: (t) => `An unknown ${lower(t.case.one)}`,
+    caseNotes: (t) => `${t.case.one} notes`,
+    noCases: (t) =>
+      `No ${lower(t.case.many)} open. Start Claude Code in a terminal and its session is filed here.`,
+    now: (task) => `Now ${asClause(task)}.`,
+    filed: (done, total) => `${done} of ${total} filed.`,
+    file: (t, number, folder) => `${t.case.one} ${number}${folder ? `, ${folder}` : ''}.`,
+    lastWord: 'Last word:',
+    nothingOnFile: 'No tasks, subagents or background work on file.',
+    end: () => 'End of report.',
   },
   speaker: { user: 'You', assistant: 'Claude' },
   caseNumber: (t, number) => `${t.case.one} ${number}`,

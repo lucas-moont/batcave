@@ -8,18 +8,17 @@ import {
   caseHeader,
   currentTask,
   folderName,
-  LIVE_STATUS_LABEL,
   lastReply,
   orderCases,
   plainPreview,
   relativeTime,
   reportCopy,
-  RUN_STATUS_LABEL,
   taskLabel,
   TYPED_BOX,
   watchRow,
   type WatchRow,
 } from '@shared/view'
+import { useWords } from '../hooks'
 import type { SheetTarget } from './CaseDetail'
 import type { Tab } from './Header'
 import { PluginHint } from './PluginHint'
@@ -32,14 +31,6 @@ import './NightReport.css'
 const QUOTE_CHARS = 150
 
 const caseAnchor = (sessionId: string) => `report-case-${sessionId}`
-
-/** A label read inside a sentence ("Now profiling …"): first letter lowered, its end stop dropped. */
-const asClause = (label: string) => (label.charAt(0).toLowerCase() + label.slice(1)).replace(/[.!?…]+$/, '')
-
-// Built once: a formatter is costly to make, and the dateline renders with every snapshot.
-const DAY = new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: '2-digit', month: 'short' })
-const TIME = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false })
-const dateline = (now: Date) => `${DAY.format(now).replace(',', '').toUpperCase()} · ${TIME.format(now)}`
 
 const quote = (text: string) => {
   const plain = plainPreview(text)
@@ -70,6 +61,8 @@ export function NightReport({
   onOpenAlert: (item: AttentionItem) => void
   onOpenSheet: (sessionId: string, target: SheetTarget) => void
 }) {
+  const words = useWords()
+  const { terms, voice } = words
   // A case opened from elsewhere (a notice card, an alert line) is brought into view.
   useEffect(() => {
     if (openCase) document.getElementById(caseAnchor(openCase))?.scrollIntoView({ block: 'start' })
@@ -77,35 +70,31 @@ export function NightReport({
 
   const { titles, cases } = useMemo(
     () => ({
-      titles: new Map(sessions.map((s) => [s.sessionId, caseHeader(s).title])),
+      titles: new Map(sessions.map((s) => [s.sessionId, caseHeader(s, words).title])),
       cases: orderCases(sessions, attention),
     }),
-    [sessions, attention],
+    [sessions, attention, words],
   )
 
   return (
     <article className="report">
       <header className="report__dateline">
-        <h2 className="report__name">Night report</h2>
-        <span className="report__date">{dateline(now)}</span>
+        <h2 className="report__name">{voice.report.name}</h2>
+        <span className="report__date">{voice.report.dateline(now)}</span>
       </header>
 
       {tab === 'needs' ? (
         <section className="report__section" aria-labelledby="report-signature">
           <h3 id="report-signature" className="report__heading">
-            Awaiting your signature
+            {voice.report.signature}
           </h3>
           {unheard > 0 && <PluginHint sessions={unheard} />}
           {attention.length === 0 ? (
-            <p className="report__nil">
-              {unheard > 0
-                ? 'Nothing reported from the sessions the plugin reaches.'
-                : 'Nothing awaits your signature. Every case can carry on without you.'}
-            </p>
+            <p className="report__nil">{unheard > 0 ? voice.report.nilUnheard : voice.report.nil(terms)}</p>
           ) : (
             <ul className="report__lines">
               {attention.map((item) => {
-                const { stamp, sentence } = reportCopy(item)
+                const { stamp, sentence } = reportCopy(item, words)
                 return (
                   <li key={`${item.sessionId}:${item.kind}:${item.taskId ?? ''}`} className="report__line">
                     <button className="entry" onClick={() => onOpenAlert(item)}>
@@ -114,7 +103,7 @@ export function NightReport({
                         <span className="entry__age">{relativeTime(item.at, now)}</span>
                       </span>
                       <span className="entry__body">
-                        <strong>{titles.get(item.sessionId) ?? 'An unknown case'}</strong>{' '}
+                        <strong>{titles.get(item.sessionId) ?? voice.report.unknown(terms)}</strong>{' '}
                         <span className={`pen pen--${ALERT_INK[item.kind]}`}>{sentence}</span>.
                       </span>
                     </button>
@@ -128,12 +117,10 @@ export function NightReport({
       ) : (
         <section className="report__section" aria-labelledby="report-cases">
           <h3 id="report-cases" className="report__heading">
-            Case notes
+            {voice.report.caseNotes(terms)}
           </h3>
           {cases.length === 0 ? (
-            <p className="report__nil">
-              No cases open. Start Claude Code in a terminal and its session is filed here.
-            </p>
+            <p className="report__nil">{voice.report.noCases(terms)}</p>
           ) : (
             <ol className="report__lines">
               {cases.map((s) => (
@@ -141,7 +128,7 @@ export function NightReport({
                   key={s.sessionId}
                   session={s}
                   alerts={attention.filter((a) => a.sessionId === s.sessionId)}
-                  tone={watchRow(s, attention).tone}
+                  tone={watchRow(s, attention, words).tone}
                   open={openCase === s.sessionId}
                   onToggle={() => onToggleCase(s.sessionId)}
                   onOpenSheet={(target) => onOpenSheet(s.sessionId, target)}
@@ -152,7 +139,7 @@ export function NightReport({
         </section>
       )}
 
-      <footer className="report__end">End of report.</footer>
+      <footer className="report__end">{voice.report.end(attention.length)}</footer>
     </article>
   )
 }
@@ -173,11 +160,13 @@ function CaseParagraph({
   onToggle: () => void
   onOpenSheet: (target: SheetTarget) => void
 }) {
-  const { number, title, progress } = caseHeader(session)
+  const words = useWords()
+  const { terms, voice } = words
+  const { number, title, progress } = caseHeader(session, words)
   const folder = folderName(session.cwd ?? '')
   const current = currentTask(session)
   const said = lastReply(session)
-  const status = alerts.length ? 'Needs you' : LIVE_STATUS_LABEL[session.status]
+  const status = alerts.length ? terms.needsYou.label : terms.live[session.status]
 
   return (
     <li id={caseAnchor(session.sessionId)} className={`case${open ? ' case--open' : ''}`}>
@@ -189,8 +178,8 @@ function CaseParagraph({
         {/* Only what a glance needs; the case number, folder and last words wait inside. */}
         <span className="entry__body">
           <strong>{title}.</strong>
-          {current && ` Now ${asClause(taskLabel(current))}.`}
-          {progress && ` ${progress.done} of ${progress.total} filed.`}
+          {current && ` ${voice.report.now(taskLabel(current))}`}
+          {progress && ` ${voice.report.filed(progress.done, progress.total)}`}
         </span>
       </button>
       {/* An open case has its own, labelled terminal button. */}
@@ -208,7 +197,7 @@ function CaseParagraph({
             {alerts.length > 0 && (
               <ul className="notes__alerts">
                 {alerts.map((a) => {
-                  const { stamp, sentence } = reportCopy(a)
+                  const { stamp, sentence } = reportCopy(a, words)
                   return (
                     <li key={`${a.kind}:${a.taskId ?? ''}`}>
                       <span className={`stamp stamp--${ALERT_INK[a.kind]}`}>{stamp}</span>{' '}
@@ -219,16 +208,19 @@ function CaseParagraph({
               </ul>
             )}
             <p className="notes__file">
-              Case {number}
-              {folder && `, ${folder}`}.
+              {voice.report.file(terms, number, folder)}
               {said && (
                 <>
                   {' '}
-                  Last word: “<Typewriter text={quote(said)} />”
+                  {voice.report.lastWord} “<Typewriter text={quote(said)} />”
                 </>
               )}
             </p>
-            <TerminalButton sessionId={session.sessionId} label="Terminal" className="notes__terminal" />
+            <TerminalButton
+              sessionId={session.sessionId}
+              label={voice.detail.terminal}
+              className="notes__terminal"
+            />
             <Notes session={session} onOpenSheet={onOpenSheet} />
           </motion.div>
         )}
@@ -244,12 +236,13 @@ function Notes({
   session: SessionSnapshot
   onOpenSheet: (target: SheetTarget) => void
 }) {
+  const { terms, voice } = useWords()
   const empty = !session.tasks.length && !session.subagents.length && !session.background.length
-  if (empty) return <p className="notes__nil">No tasks, subagents or background work on file.</p>
+  if (empty) return <p className="notes__nil">{voice.report.nothingOnFile}</p>
   return (
     <div className="notes__body">
       {session.tasks.length > 0 && (
-        <NoteGroup title="Tasks">
+        <NoteGroup title={voice.detail.tasks}>
           {session.tasks.map((t) => (
             <NoteLine
               key={t.id}
@@ -264,14 +257,14 @@ function Notes({
         </NoteGroup>
       )}
       {session.subagents.length > 0 && (
-        <NoteGroup title="Subagents">
+        <NoteGroup title={voice.detail.subagents}>
           {session.subagents.map((a) => (
             <NoteLine
               key={a.toolUseId}
               mark={a.agentType}
               done={a.status !== 'running'}
               live={a.status === 'running'}
-              state={RUN_STATUS_LABEL[a.status]}
+              state={terms.run[a.status]}
               onClick={() => onOpenSheet({ kind: 'subagent', id: a.toolUseId })}
             >
               {a.description}
@@ -280,14 +273,14 @@ function Notes({
         </NoteGroup>
       )}
       {session.background.length > 0 && (
-        <NoteGroup title="In the background">
+        <NoteGroup title={voice.detail.background}>
           {session.background.map((j) => (
             <NoteLine
               key={j.id}
               mark="$"
               done={j.status !== 'running'}
               live={j.status === 'running'}
-              state={RUN_STATUS_LABEL[j.status]}
+              state={terms.run[j.status]}
               onClick={() => onOpenSheet({ kind: 'job', id: j.id })}
             >
               {j.description ?? j.command}
