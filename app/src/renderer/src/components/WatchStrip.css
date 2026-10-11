@@ -101,7 +101,7 @@ li + li > .watch-row {
   padding: 3px 4px 1px;
   line-height: 1.1;
   border-width: 1px;
-  transform: rotate(-1.5deg);
+  transform: rotate(var(--stamp-tilt-slight));
 }
 .watch-row__title {
   grid-area: title;

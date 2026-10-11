@@ -4,7 +4,7 @@
   --margin: 114px;
   position: relative;
   padding: 8px 10px 20px 0;
-  font-family: var(--font-type);
+  font-family: var(--font-report);
   font-size: 12.5px;
   line-height: 1.6;
   color: var(--ink);
@@ -93,7 +93,7 @@
 /* The plugin hint, typed into the report under its heading. */
 .report .plugin-hint {
   margin: 6px 4px 8px calc(var(--margin) + 12px);
-  font-family: var(--font-type);
+  font-family: var(--font-report);
 }
 .report__nil {
   margin: 4px 0 0 calc(var(--margin) + 12px);
@@ -179,11 +179,11 @@
 }
 .report .stamp--working {
   color: var(--ink-live);
-  transform: rotate(-1.5deg);
+  transform: rotate(var(--stamp-tilt-slight));
 }
 .report .stamp--quiet {
   color: var(--ash);
-  transform: rotate(-1.5deg);
+  transform: rotate(var(--stamp-tilt-slight));
 }
 
 /* A case opened in place: a pen bracket in the margin holds the paragraph and its notes. */

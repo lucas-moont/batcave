@@ -1,5 +1,6 @@
 import { normalizeAccelerator } from './accelerator'
 import { bool, clamp, isRecord, num, obj, str, type Json } from './guards'
+import { DEFAULT_THEME, isThemeId, type ThemeId } from './themes'
 
 export const OPACITY_MIN = 0.5
 export const OPACITY_MAX = 1
@@ -25,6 +26,8 @@ export interface Settings {
   alwaysOnTop: boolean
   /** Window opacity, OPACITY_MIN to OPACITY_MAX. */
   opacity: number
+  /** The version of Batman Bat-Signal wears (shared/themes.ts). */
+  theme: ThemeId
   /** How the panel reads: as case files (the approved layout) or as one typed night report. */
   layout: PanelLayout
   /** The global shortcut that opens and folds Bat-Signal, as Electron writes it; '' for none. */
@@ -43,6 +46,7 @@ export const DEFAULT_SETTINGS: Settings = {
   rain: true,
   alwaysOnTop: true,
   opacity: 1,
+  theme: DEFAULT_THEME,
   layout: 'files',
   shortcut: 'Ctrl+Alt+B',
   announce: {
@@ -82,6 +86,7 @@ export function parseSettings(raw: unknown, fallback: Settings = DEFAULT_SETTING
     rain: bool(o['rain']) ?? fallback.rain,
     alwaysOnTop: bool(o['alwaysOnTop']) ?? fallback.alwaysOnTop,
     opacity: clamp(num(o['opacity']) ?? fallback.opacity, OPACITY_MIN, OPACITY_MAX),
+    theme: isThemeId(o['theme']) ? o['theme'] : fallback.theme,
     layout: parseLayout(o['layout']) ?? fallback.layout,
     shortcut: parseShortcut(o['shortcut']) ?? fallback.shortcut,
     announce: parseAnnounce(o['announce'], fallback.announce),

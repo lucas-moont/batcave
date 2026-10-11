@@ -45,15 +45,21 @@ function Rain() {
       }
     }
 
+    // A canvas can't read CSS variables: it takes the Theme's rain color as a value. An empty one
+    // (no Theme on the page) keeps the last, rather than the canvas's default black on black.
+    const recolor = () => {
+      const rain = getComputedStyle(el).getPropertyValue('--rain').trim()
+      if (rain) ctx.strokeStyle = rain
+    }
+
     const resize = () => {
       ;({ width, height } = el.getBoundingClientRect())
       el.width = Math.round(width * devicePixelRatio)
       el.height = Math.round(height * devicePixelRatio)
       ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0)
       ctx.lineWidth = 1
-      // A canvas can't read CSS variables: it takes the Theme's rain color as a value, and resizing
-      // the canvas resets it, like the line width.
-      ctx.strokeStyle = getComputedStyle(el).getPropertyValue('--rain')
+      // Resizing the canvas resets its stroke, like the line width.
+      recolor()
       const count = Math.round(((width * height) / 1000) * DROPS_PER_1000PX2)
       drops = Array.from({ length: count }, () => spawn(true))
     }
@@ -102,11 +108,15 @@ function Rain() {
     resize()
     const observer = new ResizeObserver(resize)
     observer.observe(el)
+    // A new Theme on the page brings its own rain: read it once the page wears it.
+    const themes = new MutationObserver(recolor)
+    themes.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
     document.addEventListener('visibilitychange', onVisibility)
     schedule()
     return () => {
       stop()
       observer.disconnect()
+      themes.disconnect()
       document.removeEventListener('visibilitychange', onVisibility)
     }
   }, [])

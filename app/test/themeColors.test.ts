@@ -4,8 +4,9 @@ import { rendererSources } from './rendererSources'
 
 type Source = { path: string; text: string }
 
-/** The renderer's CSS and TS, without the Theme's own file, where every color is defined. */
-const sources = () => rendererSources('.css', '.ts', '.tsx').filter(({ path }) => path !== 'styles/theme.css')
+/** The renderer's CSS and TS, without the Themes' own stylesheets, where every color is defined. */
+const sources = () =>
+  rendererSources('.css', '.ts', '.tsx').filter(({ path }) => !path.startsWith('styles/themes/'))
 
 /** Blanks out comments, keeping line breaks, so prose like "#b47c0d" in a comment isn't a color. */
 const withoutComments = (code: string) =>
@@ -54,7 +55,7 @@ function gradientsWithoutSpace(files: Source[]): string[] {
 }
 
 describe("the renderer's colors", () => {
-  // A new Theme swaps the variables in theme.css; a color written anywhere else would stay behind.
+  // A Theme swaps the variables in its stylesheet; a color written anywhere else would stay behind.
   it('all come from a Theme variable', () => {
     expect(literals(sources())).toEqual([])
   })

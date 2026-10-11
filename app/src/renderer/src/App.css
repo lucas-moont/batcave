@@ -25,8 +25,8 @@
   margin: 0;
   font-family: var(--font-display);
   font-weight: 400;
-  font-size: 21px;
-  letter-spacing: 2.5px;
+  font-size: var(--wordmark-size);
+  letter-spacing: var(--wordmark-tracking);
   line-height: 1;
   color: var(--accent);
   text-shadow: 0 0 14px color-mix(in srgb, var(--accent) 35%, transparent);

@@ -18,9 +18,20 @@ describe('parseSettings: whatever the file holds', () => {
   })
 
   it('replaces bad values with defaults and drops unknown keys', () => {
-    const parsed = parseSettings({ animations: 'yes', layout: 'grid', theme: 'arkham' })
+    const parsed = parseSettings({ animations: 'yes', layout: 'grid', palette: 'arkham' })
     expect(parsed).toEqual(DEFAULT_SETTINGS)
-    expect(parsed).not.toHaveProperty('theme')
+    expect(parsed).not.toHaveProperty('palette')
+  })
+
+  // A Theme a newer or older Bat-Signal wrote, or a typo, must not leave the app without one.
+  it('falls back to The Batman (2022) for a Theme it does not know', () => {
+    expect(DEFAULT_SETTINGS.theme).toBe('the-batman-2022')
+    expect(parseSettings({ theme: 'arkham' }).theme).toBe('the-batman-2022')
+    expect(parseSettings({ theme: 42 }).theme).toBe('the-batman-2022')
+  })
+
+  it('keeps a Theme it knows', () => {
+    expect(parseSettings({ theme: 'the-batman-2022' }).theme).toBe('the-batman-2022')
   })
 
   it('keeps the opacity between 50% and 100%', () => {
@@ -30,9 +41,10 @@ describe('parseSettings: whatever the file holds', () => {
 })
 
 describe('parseSettings: a file from before Phase 4', () => {
-  it('keeps what the user chose and turns every new announcement off', () => {
+  it('keeps what the user chose, turns every new announcement off and wears the default Theme', () => {
     expect(parseSettings(OLD_FILE)).toEqual({
       ...OLD_FILE,
+      theme: 'the-batman-2022',
       shortcut: 'Ctrl+Alt+B',
       announce: {
         toast: { needsYou: false, reply: false, taskDone: false, sessions: false },
@@ -141,6 +153,7 @@ describe('applySettingsPatch: a value of the right type but no meaning', () => {
     const mine = applySettingsPatch(DEFAULT_SETTINGS, { shortcut: 'Ctrl+Alt+N', layout: 'report' })
     expect(applySettingsPatch(mine, { shortcut: 'Ctrl+Banana' }).shortcut).toBe('Ctrl+Alt+N')
     expect(applySettingsPatch(mine, { layout: 'grid' }).layout).toBe('report')
+    expect(applySettingsPatch(mine, { theme: 'arkham' } as never).theme).toBe(DEFAULT_SETTINGS.theme)
   })
 })
 

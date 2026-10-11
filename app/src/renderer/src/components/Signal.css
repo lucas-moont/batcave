@@ -69,13 +69,7 @@
 
 /* Lit: red light through the lens, the bat a shadow in the middle of it. */
 .disc--lit .disc__face {
-  background: radial-gradient(
-    circle at 50% 50% in srgb,
-    var(--lens-core) 0%,
-    var(--signal-hot) 30%,
-    var(--signal) 62%,
-    var(--lens-edge) 100%
-  );
+  background: var(--disc-lens);
   border-color: var(--lens-rim);
   box-shadow:
     inset 0 0 0 4px color-mix(in srgb, var(--shadow) 35%, transparent),

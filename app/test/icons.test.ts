@@ -4,8 +4,8 @@ import { describe, expect, it } from 'vitest'
 import { DRAWN_FROM, emblemPath, ico } from '../scripts/icons.mts'
 
 describe('emblemPath', () => {
-  it('joins the bat out of BatEmblem.tsx, the one place it is drawn', () => {
-    const source = readFileSync(join(__dirname, '../src/renderer/src/components/BatEmblem.tsx'), 'utf8')
+  it('joins the bat out of shared/emblems.ts, the one place it is drawn', () => {
+    const source = readFileSync(join(__dirname, '../src/shared/emblems.ts'), 'utf8')
     const path = emblemPath(source)
     expect(path).toMatch(/^M2 20 L4\.5 18 L13\.5 13\.5 .* Z$/) // from the left wingtip, the 2022 symbol's outline
     expect(path).not.toContain("'")
@@ -18,7 +18,7 @@ describe('emblemPath', () => {
 
 describe('the committed icons', () => {
   it('are drawn from the bat as it is now (otherwise: npm run icons)', () => {
-    const emblem = readFileSync(join(__dirname, '../src/renderer/src/components/BatEmblem.tsx'), 'utf8')
+    const emblem = readFileSync(join(__dirname, '../src/shared/emblems.ts'), 'utf8')
     expect(readFileSync(DRAWN_FROM, 'utf8').trim()).toBe(emblemPath(emblem))
   })
 })

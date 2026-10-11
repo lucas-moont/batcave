@@ -2,7 +2,7 @@ import { app, globalShortcut } from 'electron'
 import { obj } from '../shared/guards'
 import { IPC } from '../shared/ipc'
 import { announce, emptyAnnouncer } from '../shared/announcer'
-import { applySettingsPatch, parseViewMode } from '../shared/settings'
+import { applySettingsPatch, parseViewMode, type Settings } from '../shared/settings'
 import type { AppStatus } from '../shared/status'
 import { startBatSignal } from './batSignal'
 import { settingsFile } from './settings'
@@ -75,15 +75,22 @@ function start(): void {
   }
   shortcut.apply(settings.shortcut)
 
+  /** New settings take effect: the one path for the settings sheet's patches and hand edits alike. */
+  const adopt = (next: Settings, { touchesShortcut }: { touchesShortcut: boolean }) => {
+    settings = next
+    if (settings.announce.sound) warmQuiet()
+    windows.apply(settings)
+    // Only a change that names the shortcut touches it (and retries it, if another app had it).
+    if (touchesShortcut) shortcut.apply(settings.shortcut)
+  }
+
   handleIpc(IPC.getSettings, () => settings)
   onIpc(IPC.setSettings, (_event, patch: unknown) => {
-    settings = applySettingsPatch(settings, patch)
-    if (settings.announce.sound) warmQuiet()
+    adopt(applySettingsPatch(settings, patch), { touchesShortcut: 'shortcut' in obj(patch) })
     settingsFile.saveSoon(settings)
-    windows.apply(settings)
-    // Only a patch that names the shortcut touches it (and retries it, if another app had it).
-    if ('shortcut' in obj(patch)) shortcut.apply(settings.shortcut)
   })
+  // settings.json edited by hand (until the Theme picker, that's how a Theme changes) applies at once.
+  settingsFile.watch((next) => adopt(next, { touchesShortcut: next.shortcut !== settings.shortcut }))
   handleIpc(IPC.getStatus, () => readStatus())
   // The settings sheet opened: what it shows is read again from Windows (Task Manager may have
   // moved the switch since); a change goes out as status.
