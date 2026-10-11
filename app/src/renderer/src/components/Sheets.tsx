@@ -334,8 +334,6 @@ export function SettingsSheet({
   useEffect(() => batSignal.refreshStatus(), [])
   const { terms, voice } = useWords()
   const say = voice.settings
-  // A Windows notification switch per kind of news (none while the panel is in front).
-  const toastSwitches = say.toast(terms)
   const blocked = status.startup === 'blocked'
   return (
     <Sheet kicker={say.kicker} title={say.title} onClose={onClose}>
@@ -386,7 +384,8 @@ export function SettingsSheet({
             {NEWS_GROUPS.map((group) => (
               <Toggle
                 key={group}
-                {...toastSwitches[group]}
+                label={say.toast[group].label(terms)}
+                hint={say.toast[group].hint(terms)}
                 on={settings.announce.toast[group]}
                 onChange={(on) => onChange({ announce: { toast: { [group]: on } } })}
               />

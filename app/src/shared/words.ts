@@ -123,7 +123,8 @@ export interface Voice {
     startup: Setting & { blocked: string }
     allToasts: Setting & { some: (on: number, of: number) => string }
     eachKind: string
-    toast: (t: Terms) => Record<NewsGroup, Setting>
+    /** A Windows notification switch per kind of news (none while the panel is in front); each line may name a term. */
+    toast: Record<NewsGroup, { label: (t: Terms) => string; hint: (t: Terms) => string }>
     soundOn: Setting
     volume: string
     test: string
@@ -340,12 +341,15 @@ export const STANDARD_VOICE: Voice = {
       some: (on, of) => `${on} of ${of} on`,
     },
     eachKind: 'Each kind of news',
-    toast: (t) => ({
-      needsYou: { label: 'Claude needs you', hint: 'A permission, an error or a question' },
-      reply: { label: 'Reply ready', hint: 'Claude finished replying' },
-      taskDone: { label: 'Task done', hint: `A task checked off on a ${lower(t.case.one)}` },
-      sessions: { label: `${t.case.one} opened or closed`, hint: 'A session starts or ends' },
-    }),
+    toast: {
+      needsYou: { label: () => 'Claude needs you', hint: () => 'A permission, an error or a question' },
+      reply: { label: () => 'Reply ready', hint: () => 'Claude finished replying' },
+      taskDone: {
+        label: (t) => t.stamp['task-done'],
+        hint: (t) => `A task checked off on a ${lower(t.case.one)}`,
+      },
+      sessions: { label: (t) => `${t.case.one} opened or closed`, hint: () => 'A session starts or ends' },
+    },
     soundOn: { label: 'Sound', hint: 'A spotlight coming on when Claude needs you or replies' },
     volume: 'Volume',
     test: 'Test',
