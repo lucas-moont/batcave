@@ -51,8 +51,9 @@ describe('acceleratorFromKey: recording a shortcut', () => {
 
   it('refuses Ctrl+Alt on a letter that AltGr turns into a character, which typing needs', () => {
     // On a Brazilian ABNT2 keyboard, AltGr (Ctrl+Alt) with Q types "/".
-    expect(acceleratorFromKey(key('KeyQ', { key: '/', ctrlKey: true, altKey: true }))).toMatchObject({
+    expect(acceleratorFromKey(key('KeyQ', { key: '/', ctrlKey: true, altKey: true }))).toEqual({
       kind: 'invalid',
+      problem: { why: 'typed', char: '/' },
     })
   })
 

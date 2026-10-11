@@ -7,6 +7,7 @@
 // standard words by forgetting them. Windows notifications (the announcer) and the tray pass
 // STANDARD_WORDS themselves; the panel and the Signal pass the Theme's (the renderer's useWords).
 import type { NewsGroup } from './settings'
+import type { ShortcutProblem } from './accelerator'
 import type { ShortcutStatus } from './status'
 import type { AttentionKind, LiveStatus, RunStatus, TaskStatus } from './types'
 import type { MascotMood } from './view'
@@ -138,6 +139,8 @@ export interface Voice {
     off: string
     record: string
     change: string
+    /** Why the keys pressed can't be a shortcut. */
+    problem: (problem: ShortcutProblem) => string
   }
   /** The disc and the notice card riding its beam. */
   signal: {
@@ -368,6 +371,12 @@ export const STANDARD_VOICE: Voice = {
     off: 'Off',
     record: 'Press the new shortcut',
     change: 'Change the global shortcut',
+    problem: (p) =>
+      p.why === 'no-trigger'
+        ? 'Add Ctrl or Alt, so typing never triggers it'
+        : p.why === 'key'
+          ? 'Use a letter, a number, an F key, an arrow or Space'
+          : `On this keyboard that combination types "${p.char}"`,
   },
   signal: {
     openCase: (t) => `Open this ${lower(t.case.one)}`,

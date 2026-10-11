@@ -33,7 +33,7 @@ export function ShortcutField({
       e.stopPropagation()
       const recorded = acceleratorFromKey(e)
       if (recorded.kind === 'partial') return
-      if (recorded.kind === 'invalid') return setProblem(recorded.reason)
+      if (recorded.kind === 'invalid') return setProblem(say.problem(recorded.problem))
       if (recorded.kind === 'ok') commit(recorded.accelerator)
       if (recorded.kind === 'clear') commit('')
       setProblem(null)
