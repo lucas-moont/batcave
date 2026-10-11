@@ -212,14 +212,21 @@ export interface Words {
 }
 
 /** A term inside a sentence: "Cases" reads "cases", a Theme's "Ops" reads "ops". */
-export const lower = (term: string): string => term.toLowerCase()
+const lower = (term: string): string => term.toLowerCase()
 
 /** A label read inside a sentence ("Now profiling …"): first letter lowered, its end stop dropped. */
 const asClause = (label: string) => (label.charAt(0).toLowerCase() + label.slice(1)).replace(/[.!?…]+$/, '')
 
-// Built once: a formatter is costly to make, and the dateline renders with every snapshot.
-const DAY = new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: '2-digit', month: 'short' })
-const TIME = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false })
+// Built once, on first use: a formatter is costly to make, the dateline renders with every snapshot,
+// and the main process, which loads this file for the tray, never types one.
+let datelineFormats: { day: Intl.DateTimeFormat; time: Intl.DateTimeFormat } | undefined
+const dateline = (now: Date) => {
+  const { day, time } = (datelineFormats ??= {
+    day: new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: '2-digit', month: 'short' }),
+    time: new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false }),
+  })
+  return `${day.format(now).replace(',', '').toUpperCase()} · ${time.format(now)}`
+}
 
 /** The product's name, the same under every Theme. */
 export const PRODUCT = 'Bat-Signal'
@@ -289,7 +296,7 @@ export const STANDARD_VOICE: Voice = {
   },
   report: {
     name: 'Night report',
-    dateline: (now) => `${DAY.format(now).replace(',', '').toUpperCase()} · ${TIME.format(now)}`,
+    dateline,
     signature: 'Awaiting your signature',
     nil: (t) => `Nothing awaits your signature. Every ${lower(t.case.one)} can carry on without you.`,
     nilUnheard: 'Nothing reported from the sessions the plugin reaches.',
