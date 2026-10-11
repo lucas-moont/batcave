@@ -3,11 +3,12 @@
 import { useLayoutEffect, useMemo, useRef } from 'react'
 import type { PanelLayout } from '@shared/settings'
 import type { AttentionItem, SessionSnapshot } from '@shared/types'
-import { needsYouCount, orderCases, watchRow, type WatchRow } from '@shared/view'
+import { orderCases, watchRow, type WatchRow } from '@shared/view'
 import { batSignal } from '../bridge'
+import { useWords } from '../words'
 import { BatEmblem } from './BatEmblem'
 import { Icon } from './Icon'
-import { COPIED_NOTE, useTerminalJump } from './TerminalButton'
+import { useTerminalJump } from './TerminalButton'
 import './Cards.css'
 import './WatchStrip.css'
 
@@ -42,34 +43,37 @@ export function WatchStrip({
     return () => observer.disconnect()
   }, [])
 
+  const words = useWords()
+  const { terms, voice } = words
   // The same count as the panel header's badge: everything that needs you.
   const needsYou = attention.length
   // Snapshots arrive up to ten times a second while sessions work: derive the rows once each.
   const rows = useMemo(
-    () => orderCases(sessions, attention).map((s) => ({ id: s.sessionId, row: watchRow(s, attention) })),
-    [sessions, attention],
+    () =>
+      orderCases(sessions, attention).map((s) => ({ id: s.sessionId, row: watchRow(s, attention, words) })),
+    [sessions, attention, words],
   )
 
   return (
     <main className={`watch watch--${layout}`}>
       <header ref={bar} className="watch__bar">
         <BatEmblem size={28} />
-        <h1 className="watch__name">Bat-Signal</h1>
-        {needsYou > 0 && <span className="watch__count">{needsYouCount(needsYou)}</span>}
+        <h1 className="watch__name">{voice.product}</h1>
+        {needsYou > 0 && <span className="watch__count">{terms.needsYou.count(needsYou)}</span>}
         <nav className="watch__actions">
           <button
             className="icon-button"
             onClick={() => batSignal.setMode('panel')}
-            aria-label="Open the full panel"
-            title="Open the full panel"
+            aria-label={voice.watch.openPanel}
+            title={voice.watch.openPanel}
           >
             <Icon name="expand" />
           </button>
           <button
             className="icon-button"
             onClick={() => batSignal.setMode('signal')}
-            aria-label="Fold into the signal disc"
-            title="Fold into the signal disc"
+            aria-label={voice.chrome.toDisc}
+            title={voice.chrome.toDisc}
           >
             <Icon name="fold" />
           </button>
@@ -78,7 +82,7 @@ export function WatchStrip({
       <div className="watch__scroll">
         <div ref={content}>
           {sessions.length === 0 ? (
-            <p className="watch__nil">No open cases. Start Claude Code in a terminal to follow it here.</p>
+            <p className="watch__nil">{voice.watch.nil(terms)}</p>
           ) : (
             <ul className="watch__rows">
               {rows.map(({ id, row }) => (
@@ -93,6 +97,7 @@ export function WatchStrip({
 }
 
 function Row({ sessionId, row }: { sessionId: string; row: WatchRow }) {
+  const { voice } = useWords()
   const { go, busy, copied, warm } = useTerminalJump(sessionId)
   return (
     <li>
@@ -102,14 +107,14 @@ function Row({ sessionId, row }: { sessionId: string; row: WatchRow }) {
         onPointerEnter={warm}
         onFocus={warm}
         aria-busy={busy}
-        title="Go to the terminal"
+        title={voice.terminal.go}
       >
         <span className="watch-row__stamp stamp">{row.stamp}</span>
         <span className="watch-row__title">{row.title}</span>
         {row.progress && <span className="watch-row__progress">{row.progress}</span>}
         {(copied || row.line) && (
           <span className="watch-row__line" role={copied ? 'status' : undefined}>
-            {copied ? COPIED_NOTE : row.line}
+            {copied ? voice.terminal.copied : row.line}
           </span>
         )}
       </button>

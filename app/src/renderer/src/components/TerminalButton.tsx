@@ -2,6 +2,7 @@
 // that resumes it when no window hosts it.
 import { useEffect, useRef, useState } from 'react'
 import { batSignal } from '../bridge'
+import { useWords } from '../words'
 import { Icon } from './Icon'
 
 /** How long "Resume command copied" stays up. */
@@ -30,8 +31,6 @@ export function useTerminalJump(sessionId: string) {
   return { go, busy, copied, warm: batSignal.warmTerminal }
 }
 
-export const COPIED_NOTE = 'No window found. Resume command copied.'
-
 export function TerminalButton({
   sessionId,
   label,
@@ -42,6 +41,7 @@ export function TerminalButton({
   label?: string
   className?: string
 }) {
+  const { voice } = useWords()
   const { go, busy, copied, warm } = useTerminalJump(sessionId)
   return (
     <span className={`terminal-button ${className}`}>
@@ -51,15 +51,15 @@ export function TerminalButton({
         onFocus={warm}
         onClick={go}
         aria-busy={busy}
-        aria-label="Go to the terminal"
-        title="Go to the terminal"
+        aria-label={voice.terminal.go}
+        title={voice.terminal.go}
       >
         <Icon name="terminal" />
         {label && <span>{label}</span>}
       </button>
       {copied && (
         <span className="terminal-button__note" role="status">
-          {COPIED_NOTE}
+          {voice.terminal.copied}
         </span>
       )}
     </span>
