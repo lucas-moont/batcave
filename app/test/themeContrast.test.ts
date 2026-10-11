@@ -1,17 +1,8 @@
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { THEME_IDS, type ThemeId } from '../src/shared/themes'
-import { RENDERER, rendererSources } from './rendererSources'
+import { rendererSources, themeVariables } from './rendererSources'
 
 type Rgb = [number, number, number]
-
-/** A Theme's variables, as written in its stylesheet's scoped block. */
-function variablesOf(theme: ThemeId): Map<string, string> {
-  const css = readFileSync(join(RENDERER, `styles/themes/${theme}.css`), 'utf8')
-  const block = new RegExp(`:root\\[data-theme='${theme}'\\]\\s*\\{([^}]*)\\}`).exec(css)?.[1] ?? ''
-  return new Map([...block.matchAll(/(--[\w-]+):\s*([^;]+);/g)].map((m) => [m[1]!, m[2]!.trim()] as const))
-}
 
 /** A variable's color as [r, g, b], following var() aliases down to a hex value. */
 function rgb(variables: Map<string, string>, name: string): Rgb {
@@ -87,10 +78,11 @@ const EXCEPTIONS: Record<ThemeId, Record<string, string>> = {
   },
 }
 
+const colors = textColors()
+
 describe.each(THEME_IDS)("%s's text colors", (theme) => {
-  const variables = variablesOf(theme)
+  const variables = themeVariables(theme)
   const contrast = (a: string, b: string) => ratio(rgb(variables, a), rgb(variables, b))
-  const colors = textColors()
   const exceptions = EXCEPTIONS[theme]
 
   it.each(colors.filter((c) => !(c in exceptions)))(

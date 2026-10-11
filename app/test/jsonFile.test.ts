@@ -18,14 +18,12 @@ describe('a JSON file someone edits by hand', () => {
   // Until the Theme picker, editing settings.json is how a Theme changes; it must apply at once.
   it('is read again, and its new value handed over', async () => {
     const file = jsonFile('settings.json', parse)
-    file.save({ theme: 'the-batman-2022' })
     const seen: unknown[] = []
     const stop = file.watch((value) => seen.push(value))
     await settle()
     writeFileSync(join(dir.path, 'settings.json'), JSON.stringify({ theme: 'burton-1989' }))
-    await settle()
+    await vi.waitFor(() => expect(seen).toEqual([{ theme: 'burton-1989' }]), { timeout: 2000 })
     stop()
-    expect(seen).toEqual([{ theme: 'burton-1989' }])
   })
 
   it("isn't news when the app wrote it itself", async () => {

@@ -14,7 +14,6 @@ export const DEFAULT_THEME: ThemeId = 'the-batman-2022'
 export const isThemeId = (raw: unknown): raw is ThemeId => (THEME_IDS as readonly unknown[]).includes(raw)
 
 export interface Theme {
-  id: ThemeId
   /** Its word in a demo page's hash (#demo-vengeance): one word, since the hash splits on "-". */
   flag: string
   /** The window's background before the page paints: the Theme's --abyss. */
@@ -27,7 +26,6 @@ export interface Theme {
 
 export const THEMES: Record<ThemeId, Theme> = {
   'the-batman-2022': {
-    id: 'the-batman-2022',
     flag: 'vengeance',
     ground: '#000000',
     words: STANDARD_WORDS,
