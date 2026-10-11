@@ -13,6 +13,7 @@ import {
   type WindowMode,
 } from '@shared/settings'
 import type { AppStatus } from '@shared/status'
+import { themeFromFlags } from '@shared/themes'
 import type { StoreSnapshot } from '@shared/types'
 import type { BatSignalApi } from '../../preload/index'
 
@@ -51,9 +52,10 @@ function standIn(first: StoreSnapshot, next?: StoreSnapshot): BatSignalApi {
     flags.has('silent') ? { ...s, unheard: s.sessions.map((x) => x.sessionId) } : s
   const snapshot = observable(heard(first))
   if (next) setTimeout(() => snapshot.set(heard(next)), NEWS_DELAY_MS)
-  // #demo-report opens in the night report layout.
+  // #demo-report opens in the night report layout; a Theme's flag (#demo-vengeance) wears that Theme.
   const settings = observable<Settings>({
     ...DEFAULT_SETTINGS,
+    theme: themeFromFlags(flags) ?? DEFAULT_SETTINGS.theme,
     layout: flags.has('report') ? 'report' : DEFAULT_SETTINGS.layout,
   })
   // The stand-in holds the shortcut it is given: no other app competes for it here.

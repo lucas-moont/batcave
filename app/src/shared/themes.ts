@@ -30,3 +30,7 @@ export const THEMES: Record<ThemeId, Theme> = {
     words: STANDARD_WORDS,
   },
 }
+
+/** The Theme a demo page's hash names by its flag (#demo-vengeance), if any. */
+export const themeFromFlags = (flags: ReadonlySet<string>): ThemeId | undefined =>
+  THEME_IDS.find((id) => flags.has(THEMES[id].flag))
