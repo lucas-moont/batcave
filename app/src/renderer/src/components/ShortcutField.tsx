@@ -1,16 +1,11 @@
 // The global shortcut in the settings sheet: its keys, and a click to record new ones. While
 // recording, the main process lets the current shortcut go, so its keys reach this page.
 import { useEffect, useEffectEvent, useState } from 'react'
-import { acceleratorFromKey, keycaps } from '@shared/accelerator'
+import { acceleratorFromKey, keycaps, type ShortcutProblem } from '@shared/accelerator'
 import type { ShortcutStatus } from '@shared/status'
 import { batSignal } from '../bridge'
+import { useWords } from '../words'
 import { SettingRow } from './SettingRow'
-
-const HINTS: Record<ShortcutStatus['state'], string> = {
-  active: 'Opens and folds Bat-Signal from any app',
-  off: 'Off: click to set one',
-  taken: 'Another app (or Windows) already uses it: click to pick another',
-}
 
 export function ShortcutField({
   status,
@@ -19,8 +14,9 @@ export function ShortcutField({
   status: ShortcutStatus
   onChange: (shortcut: string) => void
 }) {
-  // null while not recording; while recording, what was wrong with the last keys ('' if nothing).
-  const [problem, setProblem] = useState<string | null>(null)
+  const say = useWords().voice.shortcut
+  // null while not recording; while recording, what was wrong with the last keys ('none' if nothing).
+  const [problem, setProblem] = useState<ShortcutProblem | 'none' | null>(null)
   const recording = problem !== null
   // The sheet re-renders with every snapshot: recording must not restart (and let the shortcut
   // go and come back) each time.
@@ -37,7 +33,7 @@ export function ShortcutField({
       e.stopPropagation()
       const recorded = acceleratorFromKey(e)
       if (recorded.kind === 'partial') return
-      if (recorded.kind === 'invalid') return setProblem(recorded.reason)
+      if (recorded.kind === 'invalid') return setProblem(recorded.problem)
       if (recorded.kind === 'ok') commit(recorded.accelerator)
       if (recorded.kind === 'clear') commit('')
       setProblem(null)
@@ -49,18 +45,20 @@ export function ShortcutField({
     }
   }, [recording])
 
-  const word = recording ? 'Press keys' : status.accelerator ? '' : 'Off'
+  const word = recording ? say.pressKeys : status.accelerator ? '' : say.off
   return (
     <SettingRow
-      label="Global shortcut"
-      hint={recording ? problem || 'Esc cancels · Backspace turns it off' : HINTS[status.state]}
+      label={say.label}
+      hint={
+        recording ? (problem === 'none' ? say.recordingHint : say.problem(problem)) : say.hint[status.state]
+      }
       warn={!recording && status.state === 'taken'}
     >
       <button
         className={`shortcut__keys${recording ? ' shortcut__keys--recording' : ''}`}
-        onClick={() => setProblem('')}
+        onClick={() => setProblem('none')}
         onBlur={() => setProblem(null)}
-        aria-label={recording ? 'Press the new shortcut' : 'Change the global shortcut'}
+        aria-label={recording ? say.record : say.change}
       >
         {word ? (
           <span className="shortcut__word">{word}</span>

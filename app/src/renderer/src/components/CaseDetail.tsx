@@ -1,13 +1,6 @@
 import type { AttentionItem, SessionSnapshot, TaskStatus } from '@shared/types'
-import {
-  attentionCopy,
-  caseHeader,
-  plainPreview,
-  relativeTime,
-  RUN_STATUS_LABEL,
-  TASK_STATUS_LABEL,
-  taskLabel,
-} from '@shared/view'
+import { attentionCopy, caseHeader, plainPreview, relativeTime, taskLabel } from '@shared/view'
+import { useWords } from '../words'
 import { Icon, type IconName } from './Icon'
 import { Section } from './Section'
 import { TerminalButton } from './TerminalButton'
@@ -49,26 +42,28 @@ export function CaseDetail({
   onBack: () => void
   onOpen: (target: SheetTarget) => void
 }) {
-  const { number, title, progress } = caseHeader(session)
+  const words = useWords()
+  const { terms, voice } = words
+  const { number, title, progress } = caseHeader(session, words)
   const alerts = attention.filter((a) => a.sessionId === session.sessionId)
   const messages = session.messages.slice(-4)
 
   return (
     <div className="detail">
       <div className="detail__bar">
-        <button className="icon-button" onClick={onBack} aria-label="Back to the list">
+        <button className="icon-button" onClick={onBack} aria-label={voice.detail.back}>
           <Icon name="back" />
         </button>
         <div className="detail__heading">
-          <span className="case-number">Case {number}</span>
+          <span className="case-number">{voice.caseNumber(terms, number)}</span>
           <h2 className="detail__title">{title}</h2>
         </div>
-        <TerminalButton sessionId={session.sessionId} label="Terminal" className="detail__terminal" />
+        <TerminalButton sessionId={session.sessionId} labelled className="detail__terminal" />
       </div>
 
       <div className="detail__body">
         {alerts.map((a) => {
-          const { stamp, line } = attentionCopy(a)
+          const { stamp, line } = attentionCopy(a, words)
           return (
             <div key={`${a.kind}:${a.taskId ?? ''}`} className={`alert alert--${a.kind}`}>
               <span className="stamp">{stamp}</span>
@@ -79,7 +74,7 @@ export function CaseDetail({
         })}
 
         {session.tasks.length > 0 && (
-          <Section title="Tasks" aside={progress?.label}>
+          <Section title={voice.detail.tasks} aside={progress?.label}>
             <ul className="rows">
               {session.tasks.map((t) => (
                 <li key={t.id}>
@@ -87,7 +82,7 @@ export function CaseDetail({
                     className={`row row--task row--${t.status}${justCompleted(t) ? ' row--just-done' : ''}`}
                     onClick={() => onOpen({ kind: 'task', id: t.id })}
                     // The mark is drawn: the status is said in words for screen readers.
-                    aria-label={`${taskLabel(t)}, ${TASK_STATUS_LABEL[t.status].toLowerCase()}`}
+                    aria-label={voice.detail.taskRow(taskLabel(t), terms.task[t.status])}
                   >
                     <Beat beating={t.status === 'in_progress'} strength={0.3} className="row__glyph">
                       <Icon name={TASK_ICON[t.status]} size={14} />
@@ -103,8 +98,8 @@ export function CaseDetail({
 
         {session.subagents.length > 0 && (
           <Section
-            title="Subagents"
-            aside={`${session.subagents.filter((a) => a.status === 'running').length} running`}
+            title={voice.detail.subagents}
+            aside={voice.detail.running(session.subagents.filter((a) => a.status === 'running').length)}
           >
             <ul className="rows">
               {session.subagents.map((a) => (
@@ -115,7 +110,7 @@ export function CaseDetail({
                   >
                     <span className="chip">{a.agentType}</span>
                     <span className="row__text">{a.description}</span>
-                    <span className="row__state">{RUN_STATUS_LABEL[a.status]}</span>
+                    <span className="row__state">{terms.run[a.status]}</span>
                   </button>
                 </li>
               ))}
@@ -124,7 +119,7 @@ export function CaseDetail({
         )}
 
         {session.background.length > 0 && (
-          <Section title="In the background">
+          <Section title={voice.detail.background}>
             <ul className="rows">
               {session.background.map((j) => (
                 <li key={j.id}>
@@ -133,7 +128,7 @@ export function CaseDetail({
                     onClick={() => onOpen({ kind: 'job', id: j.id })}
                   >
                     <span className="row__text row__text--mono">{j.description ?? j.command}</span>
-                    <span className="row__state">{RUN_STATUS_LABEL[j.status]}</span>
+                    <span className="row__state">{terms.run[j.status]}</span>
                   </button>
                 </li>
               ))}
@@ -142,11 +137,13 @@ export function CaseDetail({
         )}
 
         {messages.length > 0 && (
-          <Section title="Last words">
+          <Section title={voice.detail.lastWords}>
             <ol className="log">
               {messages.map((m, i) => (
                 <li key={`${m.at}:${i}`} className={`log__entry log__entry--${m.role}`}>
-                  <span className="log__who">{m.role === 'user' ? 'You' : 'Claude'}</span>
+                  <span className="log__who">
+                    {m.role === 'user' ? voice.speaker.user : voice.speaker.assistant}
+                  </span>
                   <span className="log__text">
                     {i === messages.length - 1 ? (
                       <Typewriter text={plainPreview(m.text)} />

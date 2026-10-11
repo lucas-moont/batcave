@@ -1,6 +1,7 @@
 // The opening: a searchlight cuts through the dark and the emblem flickers on, like a
 // failing neon sign. About 1.4s; a click skips it.
 import { useEffect, useState } from 'react'
+import { useWords } from '../words'
 import { BatEmblem } from './BatEmblem'
 import './BatSignalIntro.css'
 
@@ -12,6 +13,7 @@ let played = false
 
 /** Plays the first time it mounts in this launch, then removes itself. */
 export function BatSignalIntro() {
+  const { wordmark } = useWords().voice
   const [leaving, setLeaving] = useState(false)
   const [done, setDone] = useState(played)
 
@@ -39,7 +41,7 @@ export function BatSignalIntro() {
       <div className="intro__signal">
         <BatEmblem size={120} />
       </div>
-      <div className="intro__title">BAT-SIGNAL</div>
+      <div className="intro__title">{wordmark}</div>
     </div>
   )
 }

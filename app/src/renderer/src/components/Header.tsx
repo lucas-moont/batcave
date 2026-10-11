@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'motion/react'
-import { needsYouCount, type MascotMood } from '@shared/view'
+import type { MascotMood } from '@shared/view'
+import { useWords } from '../words'
 import { BatClawd } from './BatClawd'
 import { BatEmblem } from './BatEmblem'
 import { Icon } from './Icon'
@@ -14,6 +15,7 @@ interface HeaderProps {
 
 /** Title bar of the frameless window: drag it to move. */
 export function Header({ needsYou, mood, onFold, onWatch, onHide }: HeaderProps) {
+  const { terms, voice } = useWords()
   return (
     <header className="header">
       {/* The needs-you count hangs off the emblem like a stamp, taking no room in the row. */}
@@ -24,7 +26,7 @@ export function Header({ needsYou, mood, onFold, onWatch, onHide }: HeaderProps)
             <motion.span
               key={needsYou}
               className="header__count"
-              title={needsYouCount(needsYou)}
+              title={terms.needsYou.count(needsYou)}
               initial={{ scale: 1.8, opacity: 0, rotate: -14 }}
               animate={{ scale: 1, opacity: 1, rotate: -5 }}
               exit={{ opacity: 0, scale: 0.6 }}
@@ -35,7 +37,7 @@ export function Header({ needsYou, mood, onFold, onWatch, onHide }: HeaderProps)
           )}
         </AnimatePresence>
       </span>
-      <h1 className="header__title">BAT-SIGNAL</h1>
+      <h1 className="header__title">{voice.wordmark}</h1>
       <div className="header__mascot">
         <BatClawd mood={mood} size={54} />
       </div>
@@ -43,24 +45,24 @@ export function Header({ needsYou, mood, onFold, onWatch, onHide }: HeaderProps)
         <button
           className="icon-button"
           onClick={onWatch}
-          aria-label="Shrink to the watch strip"
-          title="Shrink to the watch strip"
+          aria-label={voice.chrome.toWatch}
+          title={voice.chrome.toWatch}
         >
           <Icon name="watch" />
         </button>
         <button
           className="icon-button"
           onClick={onFold}
-          aria-label="Fold into the signal disc"
-          title="Fold into the signal disc (Esc)"
+          aria-label={voice.chrome.toDisc}
+          title={voice.chrome.toDiscTip}
         >
           <Icon name="fold" />
         </button>
         <button
           className="icon-button icon-button--danger"
           onClick={onHide}
-          aria-label="Hide to tray"
-          title="Hide to tray"
+          aria-label={voice.chrome.hide}
+          title={voice.chrome.hide}
         >
           <Icon name="close" />
         </button>
@@ -82,7 +84,8 @@ export function Tabs({
   onChange: (tab: Tab) => void
   onSettings: () => void
 }) {
-  const label: Record<Tab, string> = { needs: 'Needs you', cases: 'Cases' }
+  const { terms, voice } = useWords()
+  const label: Record<Tab, string> = { needs: terms.needsYou.label, cases: terms.case.many }
   return (
     <div className="tabs" role="tablist">
       {(['needs', 'cases'] as const).map((t) => (
@@ -102,8 +105,8 @@ export function Tabs({
       <button
         className="icon-button tabs__settings"
         onClick={onSettings}
-        aria-label="Settings"
-        title="Settings"
+        aria-label={voice.chrome.settings}
+        title={voice.chrome.settings}
       >
         <Icon name="gear" />
       </button>

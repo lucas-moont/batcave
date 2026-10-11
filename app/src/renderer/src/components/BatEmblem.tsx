@@ -6,6 +6,7 @@
 // Bat-Clawd wears it on his chest, all three plain: the scratches are this component's alone.
 
 import { useId } from 'react'
+import { PRODUCT } from '@shared/words'
 
 export const WINGS =
   'M2 20 L4.5 18 L13.5 13.5 L23.5 10 L34 7 L35.5 14 L44 22.5 L46.5 23 L54.5 28.5 L55.5 24.5 ' +
@@ -38,10 +39,11 @@ export function batAt(cx: number, cy: number, width: number): string {
 
 export function BatEmblem({
   size = 40,
-  title = 'Bat-Signal',
+  title,
   fill = 'var(--signal)',
 }: {
   size?: number
+  /** What a screen reader says; the product's name unless given ("" for a decorative one). */
   title?: string
   fill?: string
 }) {
@@ -53,7 +55,7 @@ export function BatEmblem({
       height={(size * BOX.height) / BOX.width}
       viewBox={`${BOX.x} ${BOX.y} ${BOX.width} ${BOX.height}`}
       role="img"
-      aria-label={title}
+      aria-label={title ?? PRODUCT}
       style={{ display: 'block', overflow: 'visible' }}
     >
       <defs>

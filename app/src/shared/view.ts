@@ -1,14 +1,7 @@
 // Pure presentation rules shared by the window and its tests.
 import { ATTENTION_URGENCY } from './types'
-import type {
-  AttentionItem,
-  LiveStatus,
-  RunStatus,
-  SessionSnapshot,
-  StoreSnapshot,
-  Task,
-  TaskStatus,
-} from './types'
+import type { AttentionItem, SessionSnapshot, StoreSnapshot, Task, TaskStatus } from './types'
+import type { Words } from './words'
 
 export type MascotMood = 'sleeping' | 'flying' | 'alarmed'
 
@@ -22,9 +15,9 @@ export function mascotMood({ sessions, attention }: StoreSnapshot): MascotMood {
 }
 
 /** relativeTime as a phrase: "just now", "5m ago", or empty for missing or invalid times. */
-export function ago(iso: string | undefined, now: Date): string {
+export function ago(iso: string | undefined, now: Date, { voice }: Words): string {
   const age = relativeTime(iso, now)
-  return age === 'now' ? 'just now' : age && `${age} ago`
+  return age === 'now' ? voice.time.justNow : age && voice.time.ago(age)
 }
 
 const MINUTE = 60_000
@@ -54,50 +47,39 @@ const humanize = (code: string): string => {
   return words.charAt(0).toUpperCase() + words.slice(1)
 }
 
-/** "5 need you", "1 needs you": the count the disc, the header, the strip and the tray all show. */
-export const needsYouCount = (count: number): string => `${count} need${count === 1 ? 's' : ''} you`
-
 /** The stamp and detail line of a needs-you card. */
-export function attentionCopy(item: AttentionItem): CardCopy {
+export function attentionCopy(item: AttentionItem, { terms, voice }: Words): CardCopy {
+  const stamp = terms.stamp[item.kind]
+  const line = voice.alertLine
   switch (item.kind) {
     case 'permission':
-      return {
-        stamp: 'Permission',
-        line: [item.toolName ?? 'A tool', item.detail].filter(Boolean).join(' · '),
-      }
+      return { stamp, line: [item.toolName ?? line.someTool, item.detail].filter(Boolean).join(' · ') }
     case 'error':
-      return { stamp: 'Error', line: item.detail ? humanize(item.detail) : 'The turn failed' }
+      return { stamp, line: item.detail ? humanize(item.detail) : line.errorFallback }
     case 'waiting':
-      return { stamp: 'Waiting', line: 'Claude is waiting for you' }
+      return { stamp, line: line.waiting }
     case 'reply':
-      return { stamp: 'New reply', line: 'Claude finished replying' }
+      return { stamp, line: line.reply }
     case 'stalled':
-      return { stamp: 'Stalled', line: item.detail ? `No news on “${item.detail}”` : 'A task has gone quiet' }
+      return { stamp, line: line.stalled(item.detail) }
   }
 }
 
 /** How an alert reads in the night report: the case's title, then this sentence. */
-export function reportCopy(item: AttentionItem): { stamp: string; sentence: string } {
-  const { stamp } = attentionCopy(item)
+export function reportCopy(item: AttentionItem, words: Words): { stamp: string; sentence: string } {
+  const stamp = words.terms.stamp[item.kind]
+  const sentence = words.voice.reportSentence
   switch (item.kind) {
     case 'permission':
-      return {
-        stamp,
-        sentence: item.detail
-          ? `asks to run ${item.toolName ?? 'a tool'}: ${item.detail}`
-          : `asks to use ${item.toolName ?? 'a tool'}`,
-      }
+      return { stamp, sentence: sentence.permission(item.toolName, item.detail) }
     case 'error':
-      return {
-        stamp,
-        sentence: item.detail ? `stopped: ${humanize(item.detail).toLowerCase()}` : 'stopped with an error',
-      }
+      return { stamp, sentence: sentence.error(item.detail && humanize(item.detail).toLowerCase()) }
     case 'waiting':
-      return { stamp, sentence: 'is waiting for your answer' }
+      return { stamp, sentence: sentence.waiting }
     case 'reply':
-      return { stamp, sentence: 'finished replying' }
+      return { stamp, sentence: sentence.reply }
     case 'stalled':
-      return { stamp, sentence: item.detail ? `has gone quiet on “${item.detail}”` : 'has a task gone quiet' }
+      return { stamp, sentence: sentence.stalled(item.detail) }
   }
 }
 
@@ -109,12 +91,12 @@ export interface CaseHeader {
 }
 
 /** How a session is introduced on its card. */
-export function caseHeader(session: SessionSnapshot): CaseHeader {
+export function caseHeader(session: SessionSnapshot, { terms, voice }: Words): CaseHeader {
   const done = session.tasks.filter((t) => t.status === 'completed').length
   const total = session.tasks.length
   return {
     number: `#${session.sessionId.replace(/[^a-z0-9]/gi, '').slice(0, 6)}`,
-    title: session.title ?? session.name ?? 'Untitled case',
+    title: session.title ?? session.name ?? voice.untitled(terms),
     progress: total ? { done, total, label: `${done}/${total}` } : undefined,
   }
 }
@@ -158,27 +140,12 @@ const stripEmphasis = (text: string): string =>
 const PREVIEW_READ = 600
 const PREVIEW_MAX = 280
 
-/** How each status reads in the window, so a list row and its drawer always agree. */
-export const LIVE_STATUS_LABEL: Record<LiveStatus, string> = { busy: 'Working', idle: 'Idle', shell: 'Shell' }
-export const TASK_STATUS_LABEL: Record<TaskStatus, string> = {
-  pending: 'Pending',
-  in_progress: 'In progress',
-  completed: 'Completed',
-  deleted: 'Deleted',
-}
 /** Tasks as a typist marks them (the night report). */
 export const TYPED_BOX: Record<TaskStatus, string> = {
   pending: '[ ]',
   in_progress: '[>]',
   completed: '[x]',
   deleted: '[-]',
-}
-
-export const RUN_STATUS_LABEL: Record<RunStatus, string> = {
-  running: 'Running',
-  completed: 'Done',
-  failed: 'Failed',
-  stopped: 'Stopped',
 }
 
 /**
@@ -229,16 +196,17 @@ export const ALERT_INK: Record<AttentionItem['kind'], 'hot' | 'soft' | 'quiet'> 
 }
 
 /** One row of the watch strip: what a glance at the corner should tell about a session. */
-export function watchRow(session: SessionSnapshot, attention: AttentionItem[]): WatchRow {
-  const { title, progress } = caseHeader(session)
+export function watchRow(session: SessionSnapshot, attention: AttentionItem[], words: Words): WatchRow {
+  const { title, progress } = caseHeader(session, words)
+  const { live } = words.terms
   const own = attention
     .filter((a) => a.sessionId === session.sessionId)
     .sort((a, b) => ATTENTION_URGENCY[a.kind] - ATTENTION_URGENCY[b.kind])[0]
   const row: WatchRow = own
-    ? { tone: ALERT_INK[own.kind], ...attentionCopy(own), title }
+    ? { tone: ALERT_INK[own.kind], ...attentionCopy(own, words), title }
     : session.status === 'busy'
-      ? { tone: 'working', stamp: LIVE_STATUS_LABEL.busy, title, ...lineOf(currentTask(session)) }
-      : { tone: 'idle', stamp: LIVE_STATUS_LABEL[session.status], title }
+      ? { tone: 'working', stamp: live.busy, title, ...lineOf(currentTask(session)) }
+      : { tone: 'idle', stamp: live[session.status], title }
   return progress ? { ...row, progress: progress.label } : row
 }
 

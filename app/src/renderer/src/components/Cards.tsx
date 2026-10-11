@@ -1,14 +1,7 @@
 import { motion, AnimatePresence } from 'motion/react'
 import type { AttentionItem, SessionSnapshot } from '@shared/types'
-import {
-  ALERT_INK,
-  attentionCopy,
-  caseHeader,
-  folderName,
-  LIVE_STATUS_LABEL,
-  orderCases,
-  relativeTime,
-} from '@shared/view'
+import { ALERT_INK, attentionCopy, caseHeader, folderName, orderCases, relativeTime } from '@shared/view'
+import { useWords } from '../words'
 import { BatClawd } from './BatClawd'
 import { Beat, Glow } from './Live'
 import { TerminalButton } from './TerminalButton'
@@ -50,11 +43,13 @@ export function AttentionList({
   quietIsKnown: boolean
   onOpen: (item: AttentionItem) => void
 }) {
+  const words = useWords()
+  const { terms, voice } = words
   if (!items.length) {
     return quietIsKnown ? (
-      <Empty title="All quiet in Gotham." hint="Nothing needs you right now." />
+      <Empty title={voice.empty.quiet.title} hint={voice.empty.quiet.hint} />
     ) : (
-      <Empty title="Nothing reported." hint="The plugin does not reach every session yet." />
+      <Empty title={voice.empty.unheard.title} hint={voice.empty.unheard.hint} />
     )
   }
   return (
@@ -62,7 +57,7 @@ export function AttentionList({
       <AnimatePresence>
         {items.map((item, i) => {
           const session = sessions.find((s) => s.sessionId === item.sessionId)
-          const { stamp, line } = attentionCopy(item)
+          const { stamp, line } = attentionCopy(item, words)
           return (
             <motion.li
               key={`${item.sessionId}:${item.kind}:${item.taskId ?? ''}`}
@@ -78,7 +73,9 @@ export function AttentionList({
                   <span className="stamp">{stamp}</span>
                   <span className="card__time">{relativeTime(item.at, now)}</span>
                 </span>
-                <span className="card__title">{session ? caseHeader(session).title : 'Unknown case'}</span>
+                <span className="card__title">
+                  {session ? caseHeader(session, words).title : voice.unknown(terms)}
+                </span>
                 <span className="card__detail">{line}</span>
               </button>
               <TerminalButton sessionId={item.sessionId} className="card__terminal" />
@@ -101,14 +98,16 @@ export function CaseList({
   now: Date
   onOpen: (sessionId: string) => void
 }) {
+  const words = useWords()
+  const { terms, voice } = words
   if (!sessions.length) {
-    return <Empty title="No open cases." hint="Start Claude Code in a terminal and it shows up here." />
+    return <Empty title={voice.empty.noCases.title(terms)} hint={voice.empty.noCases.hint} />
   }
   return (
     <ul className="cards">
       <AnimatePresence>
         {orderCases(sessions, attention).map((s, i) => {
-          const { number, title, progress } = caseHeader(s)
+          const { number, title, progress } = caseHeader(s, words)
           const needsYou = attention.some((a) => a.sessionId === s.sessionId)
           const status = needsYou ? 'alert' : s.status
           return (
@@ -119,19 +118,19 @@ export function CaseList({
               >
                 {needsYou && <Glow />}
                 <span className="card__top">
-                  <span className="case-number">Case {number}</span>
+                  <span className="case-number">{voice.caseNumber(terms, number)}</span>
                   <span className={`status status--${status}`}>
                     {status === 'alert' ? (
                       <Glow className="status__dot" />
                     ) : (
                       <Beat beating={status === 'busy'} className="status__dot" />
                     )}
-                    {needsYou ? 'Needs you' : LIVE_STATUS_LABEL[s.status]}
+                    {needsYou ? terms.needsYou.label : terms.live[s.status]}
                   </span>
                 </span>
                 <span className="card__title">{title}</span>
                 {progress && (
-                  <span className="progress" aria-label={`${progress.label} tasks done`}>
+                  <span className="progress" aria-label={voice.tasksDone(progress.label)}>
                     <span className="progress__track">
                       <motion.span
                         className="progress__fill"

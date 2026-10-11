@@ -10,7 +10,8 @@ import { batSignal } from '../bridge'
 import { playCue } from '../cues'
 import { CalmContext, useCalm } from '../calm'
 import { useSettings, useSnapshotState, useWindowMode } from '../hooks'
-import { mascotMood, needsYouCount } from '@shared/view'
+import { useWords } from '../words'
+import { mascotMood } from '@shared/view'
 import { BatClawd } from './BatClawd'
 import { BatEmblem } from './BatEmblem'
 import { Glow } from './Live'
@@ -30,10 +31,12 @@ const interactive = {
 function useNotices(snapshot: StoreSnapshot, loaded: boolean, listening: boolean) {
   const [queue, setQueue] = useState(emptyQueue)
   const prev = useRef<StoreSnapshot | undefined>(undefined)
+  // The notice card is the Signal's: it speaks the Theme's words, where a toast keeps the standard ones.
+  const words = useWords()
 
   // Only a new snapshot can hold news; a change of mode alone must not diff it again.
   const onSnapshot = useEffectEvent((next: StoreSnapshot) => {
-    const news = diffNotices(prev.current, next)
+    const news = diffNotices(prev.current, next, words)
     prev.current = next
     if (listening && news.length) setQueue((q) => enqueue(q, news, Date.now()))
   })
@@ -151,6 +154,7 @@ function NoticeCard({
   onOpen: () => void
   onHover: (hovered: boolean) => void
 }) {
+  const { terms, voice } = useWords()
   // A card can leave under the pointer (clicked, or silenced): no pointerleave comes then.
   useEffect(() => () => onHover(false), [onHover])
   return (
@@ -173,7 +177,7 @@ function NoticeCard({
           interactive.onPointerLeave()
           onHover(false)
         }}
-        title="Open this case"
+        title={voice.signal.openCase(terms)}
       >
         <span className="stamp">{notice.stamp}</span>
         <strong className="notice__title">{notice.title}</strong>
@@ -195,6 +199,7 @@ function Disc({
   count: number
   onOpen: () => void
 }) {
+  const { terms, voice } = useWords()
   const press = useRef<{ x: number; y: number } | null>(null)
   const dragged = useRef(false)
   // Pointer moves come far faster than frames: add them up and move the window once a frame.
@@ -213,8 +218,8 @@ function Disc({
   return (
     <button
       className={`disc${lit ? ' disc--lit' : ''}`}
-      aria-label={count ? `Open Bat-Signal: ${needsYouCount(count)}` : 'Open Bat-Signal'}
-      title="Open Bat-Signal · drag to move"
+      aria-label={voice.signal.open(terms, count)}
+      title={voice.signal.openTip}
       {...interactive}
       onPointerDown={(e) => {
         e.currentTarget.setPointerCapture(e.pointerId)

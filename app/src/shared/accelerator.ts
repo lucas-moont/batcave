@@ -22,8 +22,12 @@ export type Recorded =
   | { kind: 'cancel' }
   /** Backspace or Delete: no shortcut. */
   | { kind: 'clear' }
-  | { kind: 'invalid'; reason: string }
+  | { kind: 'invalid'; problem: ShortcutProblem }
   | { kind: 'ok'; accelerator: string }
+
+/** Why keys can't be a shortcut (the settings sheet says it in words): no Ctrl, Alt or Win; a key
+ * a shortcut can't end in; or a combination this keyboard types a character with. */
+export type ShortcutProblem = { why: 'no-trigger' } | { why: 'key' } | { why: 'typed'; char: string }
 
 const MODIFIERS = ['Ctrl', 'Alt', 'Shift', 'Super'] as const
 type Modifier = (typeof MODIFIERS)[number]
@@ -67,7 +71,7 @@ const standsAlone = (key: string) => /^F(1[3-9]|2[0-4])$/.test(key)
 
 function compose(modifiers: ReadonlySet<Modifier>, key: string): Recorded {
   if (!standsAlone(key) && !TRIGGERS.some((m) => modifiers.has(m)))
-    return { kind: 'invalid', reason: 'Add Ctrl or Alt, so typing never triggers it' }
+    return { kind: 'invalid', problem: { why: 'no-trigger' } }
   return { kind: 'ok', accelerator: [...MODIFIERS.filter((m) => modifiers.has(m)), key].join('+') }
 }
 
@@ -77,12 +81,12 @@ export function acceleratorFromKey(e: KeyLike): Recorded {
   if (bare && e.code === 'Escape') return { kind: 'cancel' }
   if (bare && (e.code === 'Backspace' || e.code === 'Delete')) return { kind: 'clear' }
   let key = KEYS.get(e.code)
-  if (!key) return { kind: 'invalid', reason: 'Use a letter, a number, an F key, an arrow or Space' }
+  if (!key) return { kind: 'invalid', problem: { why: 'key' } }
   if (/^Key[A-Z]$/.test(e.code)) {
     if (/^[a-z]$/i.test(e.key)) key = e.key.toUpperCase()
     // Ctrl+Alt is AltGr on many layouts: if it typed a character, typing needs that combination.
     else if (e.ctrlKey && e.altKey && e.key.length === 1)
-      return { kind: 'invalid', reason: `On this keyboard that combination types "${e.key}"` }
+      return { kind: 'invalid', problem: { why: 'typed', char: e.key } }
   }
   const modifiers = new Set<Modifier>()
   if (e.ctrlKey) modifiers.add('Ctrl')

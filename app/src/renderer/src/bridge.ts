@@ -51,7 +51,7 @@ function standIn(first: StoreSnapshot, next?: StoreSnapshot): BatSignalApi {
     flags.has('silent') ? { ...s, unheard: s.sessions.map((x) => x.sessionId) } : s
   const snapshot = observable(heard(first))
   if (next) setTimeout(() => snapshot.set(heard(next)), NEWS_DELAY_MS)
-  // #demo-report opens in the night report theme.
+  // #demo-report opens in the night report layout.
   const settings = observable<Settings>({
     ...DEFAULT_SETTINGS,
     layout: flags.has('report') ? 'report' : DEFAULT_SETTINGS.layout,
