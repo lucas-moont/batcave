@@ -47,7 +47,7 @@ export function AttentionList({
   const { terms, voice } = words
   if (!items.length) {
     return quietIsKnown ? (
-      <Empty title={voice.empty.quiet.title} hint={voice.empty.quiet.hint(terms)} />
+      <Empty title={voice.empty.quiet.title} hint={voice.empty.quiet.hint} />
     ) : (
       <Empty title={voice.empty.unheard.title} hint={voice.empty.unheard.hint} />
     )

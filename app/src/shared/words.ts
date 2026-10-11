@@ -50,7 +50,7 @@ export interface Voice {
   }
   /** The case files' empty states. */
   empty: {
-    quiet: { title: string; hint: (t: Terms) => string }
+    quiet: { title: string; hint: string }
     /** Nothing reported, but the plugin misses some sessions, so that proves nothing. */
     unheard: { title: string; hint: string }
     noCases: { title: (t: Terms) => string; hint: string }
@@ -266,7 +266,8 @@ export const STANDARD_VOICE: Voice = {
     settings: 'Settings',
   },
   empty: {
-    quiet: { title: 'All quiet in Gotham.', hint: (t) => `Nothing ${lower(t.needsYou.label)} right now.` },
+    // "needs you" is a verb here, not the tab's name: a Lexicon's "Your desk" must not land in it.
+    quiet: { title: 'All quiet in Gotham.', hint: 'Nothing needs you right now.' },
     unheard: { title: 'Nothing reported.', hint: 'The plugin does not reach every session yet.' },
     noCases: {
       title: (t) => `No open ${lower(t.case.many)}.`,
