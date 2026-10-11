@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { MascotMood } from '@shared/view'
 import { batAt, WINGS } from './BatEmblem'
 import { useIsCalm } from '../calm'
+import { useWords } from '../words'
 import { useFrame, useLiveStyle } from '../ticker'
 import './BatClawd.css'
 
@@ -181,11 +182,6 @@ const WATCH: { gust: boolean; look: number }[] = [
   STILL,
   STILL,
 ]
-const LABEL: Record<MascotMood, string> = {
-  sleeping: 'Bat-Clawd is asleep',
-  flying: 'Bat-Clawd is on patrol',
-  alarmed: 'Bat-Clawd needs you',
-}
 
 export function BatClawd({
   mood,
@@ -198,6 +194,7 @@ export function BatClawd({
   perched?: boolean
 }) {
   const calm = useIsCalm()
+  const said = useWords().voice.mascot
   const ref = useRef<HTMLSpanElement>(null)
   const [gaze, setGaze] = useState({ x: 0, y: 0 })
   const [hopping, setHopping] = useState(false)
@@ -249,7 +246,7 @@ export function BatClawd({
     <span
       ref={ref}
       role="img"
-      aria-label={watching ? 'Bat-Clawd keeps watch' : LABEL[mood]}
+      aria-label={watching ? said.watching : said[mood]}
       className={`clawd${hopping ? ' clawd--hop' : ''}`}
       style={{ width: size, height: (size * 13) / 28 }}
       onClick={() => {
