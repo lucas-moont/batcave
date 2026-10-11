@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { DEFAULT_SETTINGS, type Settings, type SettingsPatch, type WindowMode } from '@shared/settings'
 import { DEFAULT_STATUS, type AppStatus } from '@shared/status'
 import type { StoreSnapshot } from '@shared/types'
+import { STANDARD_WORDS, type Words } from '@shared/words'
 import { batSignal } from './bridge'
 
 const EMPTY: StoreSnapshot = { sessions: [], attention: [] }
@@ -60,3 +61,6 @@ export function useNow(): Date {
   }, [])
   return now
 }
+
+/** The words the panel and the Signal speak: the default Theme's, until Themes arrive (#74). */
+export const useWords = (): Words => STANDARD_WORDS

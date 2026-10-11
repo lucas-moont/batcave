@@ -33,6 +33,17 @@ export interface Terms {
 
 /** The text that is not a term: headings, sentences, empty states, labels. */
 export interface Voice {
+  product: string
+  /** The product's name on the masthead and in the intro. */
+  wordmark: string
+  /** The title bar's and tabs' buttons. */
+  chrome: {
+    toWatch: string
+    toDisc: string
+    toDiscTip: string
+    hide: string
+    settings: string
+  }
   time: {
     justNow: string
     ago: (age: string) => string
@@ -100,6 +111,15 @@ export const STANDARD_TERMS: Terms = {
 }
 
 export const STANDARD_VOICE: Voice = {
+  product: 'Bat-Signal',
+  wordmark: 'BAT-SIGNAL',
+  chrome: {
+    toWatch: 'Shrink to the watch strip',
+    toDisc: 'Fold into the signal disc',
+    toDiscTip: 'Fold into the signal disc (Esc)',
+    hide: 'Hide to tray',
+    settings: 'Settings',
+  },
   time: { justNow: 'just now', ago: (age) => `${age} ago` },
   alertLine: {
     someTool: 'A tool',
