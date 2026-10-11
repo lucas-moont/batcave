@@ -1,4 +1,4 @@
-import { useEffect, useEffectEvent, useMemo, useState } from 'react'
+import { useEffect, useEffectEvent, useMemo, useState, type ReactNode } from 'react'
 import { AnimatePresence, motion, MotionConfig } from 'motion/react'
 import type { AttentionItem } from '@shared/types'
 import { mascotMood, pluginSilent, unheardCount } from '@shared/view'
@@ -87,117 +87,114 @@ export function App() {
   // than flashing an intro or rain the user may have turned off.
   if (!settingsLoaded) return <main className="app" />
 
+  // Every view wears the settings' Theme and their calm.
+  const dressed = (page: ReactNode) => (
+    <Wearing theme={settings.theme}>
+      <CalmContext value={calm}>{page}</CalmContext>
+    </Wearing>
+  )
+
   if (view === 'watch') {
-    return (
-      <Wearing theme={settings.theme}>
-        <CalmContext value={calm}>
-          <WatchStrip sessions={sessions} attention={attention} layout={settings.layout} />
-        </CalmContext>
-      </Wearing>
-    )
+    return dressed(<WatchStrip sessions={sessions} attention={attention} layout={settings.layout} />)
   }
 
-  return (
-    <Wearing theme={settings.theme}>
-      <CalmContext value={calm}>
-        <MotionConfig reducedMotion={calm ? 'always' : 'never'}>
-          <main className="app">
-            <Atmosphere rain={settings.rain && !calm} activity={activity} />
-            <Header
-              needsYou={attention.length}
-              mood={mood}
-              onFold={fold}
-              onWatch={() => batSignal.setMode('watch')}
-              onHide={batSignal.hide}
-            />
-            <Tabs
-              tab={activeTab}
-              counts={{ needs: attention.length, cases: sessions.length }}
-              onChange={(next) => {
-                // In the report, leaving the case notes closes the case opened there.
-                if (report && next === 'needs') setOpenCase(null)
-                setTab(next)
-              }}
-              onSettings={() => setSettingsOpen(true)}
-            />
+  return dressed(
+    <MotionConfig reducedMotion={calm ? 'always' : 'never'}>
+      <main className="app">
+        <Atmosphere rain={settings.rain && !calm} activity={activity} />
+        <Header
+          needsYou={attention.length}
+          mood={mood}
+          onFold={fold}
+          onWatch={() => batSignal.setMode('watch')}
+          onHide={batSignal.hide}
+        />
+        <Tabs
+          tab={activeTab}
+          counts={{ needs: attention.length, cases: sessions.length }}
+          onChange={(next) => {
+            // In the report, leaving the case notes closes the case opened there.
+            if (report && next === 'needs') setOpenCase(null)
+            setTab(next)
+          }}
+          onSettings={() => setSettingsOpen(true)}
+        />
 
-            <div className="stage">
-              <div className="stage__scroll">
-                {!report && activeTab === 'needs' && pluginSilent(snapshot) && (
-                  <PluginHint sessions={unheardCount(snapshot)} />
-                )}
-                {report ? (
-                  <NightReport
-                    tab={activeTab}
-                    unheard={unheardCount(snapshot)}
-                    sessions={sessions}
-                    attention={attention}
-                    now={now}
-                    openCase={session ? openCase : null}
-                    onToggleCase={(id) => (openCase === id ? setOpenCase(null) : open(id))}
-                    onOpenAlert={openAttention}
-                    onOpenSheet={open}
-                  />
-                ) : activeTab === 'needs' ? (
-                  <AttentionList
-                    items={attention}
-                    sessions={sessions}
-                    now={now}
-                    quietIsKnown={!pluginSilent(snapshot)}
-                    onOpen={openAttention}
-                  />
-                ) : (
-                  <CaseList sessions={sessions} attention={attention} now={now} onOpen={(id) => open(id)} />
-                )}
-              </div>
+        <div className="stage">
+          <div className="stage__scroll">
+            {!report && activeTab === 'needs' && pluginSilent(snapshot) && (
+              <PluginHint sessions={unheardCount(snapshot)} />
+            )}
+            {report ? (
+              <NightReport
+                tab={activeTab}
+                unheard={unheardCount(snapshot)}
+                sessions={sessions}
+                attention={attention}
+                now={now}
+                openCase={session ? openCase : null}
+                onToggleCase={(id) => (openCase === id ? setOpenCase(null) : open(id))}
+                onOpenAlert={openAttention}
+                onOpenSheet={open}
+              />
+            ) : activeTab === 'needs' ? (
+              <AttentionList
+                items={attention}
+                sessions={sessions}
+                now={now}
+                quietIsKnown={!pluginSilent(snapshot)}
+                onOpen={openAttention}
+              />
+            ) : (
+              <CaseList sessions={sessions} attention={attention} now={now} onOpen={(id) => open(id)} />
+            )}
+          </div>
 
-              <AnimatePresence>
-                {session && !report && (
-                  <motion.div
-                    key="detail"
-                    className="stage__layer"
-                    initial={{ x: '100%' }}
-                    animate={{ x: 0 }}
-                    exit={{ x: '100%' }}
-                    transition={{ type: 'spring', stiffness: 380, damping: 36 }}
-                  >
-                    <CaseDetail
-                      session={session}
-                      attention={attention}
-                      now={now}
-                      onBack={() => setOpenCase(null)}
-                      onOpen={setSheet}
-                    />
-                  </motion.div>
-                )}
-              </AnimatePresence>
+          <AnimatePresence>
+            {session && !report && (
+              <motion.div
+                key="detail"
+                className="stage__layer"
+                initial={{ x: '100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: '100%' }}
+                transition={{ type: 'spring', stiffness: 380, damping: 36 }}
+              >
+                <CaseDetail
+                  session={session}
+                  attention={attention}
+                  now={now}
+                  onBack={() => setOpenCase(null)}
+                  onOpen={setSheet}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-              <AnimatePresence>
-                {session && activeSheet && (
-                  <DetailSheet
-                    key="sheet"
-                    session={session}
-                    target={activeSheet}
-                    now={now}
-                    onClose={() => setSheet(null)}
-                  />
-                )}
-                {settingsOpen && (
-                  <SettingsSheet
-                    key="settings"
-                    settings={settings}
-                    status={status}
-                    onChange={changeSettings}
-                    onClose={() => setSettingsOpen(false)}
-                  />
-                )}
-              </AnimatePresence>
-            </div>
+          <AnimatePresence>
+            {session && activeSheet && (
+              <DetailSheet
+                key="sheet"
+                session={session}
+                target={activeSheet}
+                now={now}
+                onClose={() => setSheet(null)}
+              />
+            )}
+            {settingsOpen && (
+              <SettingsSheet
+                key="settings"
+                settings={settings}
+                status={status}
+                onChange={changeSettings}
+                onClose={() => setSettingsOpen(false)}
+              />
+            )}
+          </AnimatePresence>
+        </div>
 
-            {!calm && <BatSignalIntro />}
-          </main>
-        </MotionConfig>
-      </CalmContext>
-    </Wearing>
+        {!calm && <BatSignalIntro />}
+      </main>
+    </MotionConfig>,
   )
 }
