@@ -6,7 +6,9 @@
 // Windows notifications and the tray always speak STANDARD_WORDS: the functions behind them take
 // no words at all. The panel and the Signal read the Theme's words (see the renderer's useWords).
 import type { NewsGroup } from './settings'
+import type { ShortcutStatus } from './status'
 import type { AttentionKind, LiveStatus, RunStatus, TaskStatus } from './types'
+import type { MascotMood } from './view'
 
 /** A noun in the singular and the plural: Case, Cases (or a Theme's Op, Ops). */
 export interface Plural {
@@ -126,6 +128,38 @@ export interface Voice {
     test: string
     testTip: string
   }
+  shortcut: {
+    label: string
+    hint: Record<ShortcutStatus['state'], string>
+    recordingHint: string
+    pressKeys: string
+    off: string
+    record: string
+    change: string
+  }
+  /** The disc and the notice card riding its beam. */
+  signal: {
+    openCase: (t: Terms) => string
+    open: (t: Terms, needsYou: number) => string
+    openTip: string
+  }
+  watch: {
+    openPanel: string
+    nil: (t: Terms) => string
+  }
+  terminal: {
+    go: string
+    /** No window hosts the session, so the command that resumes it went to the clipboard. */
+    copied: string
+  }
+  /** Needs you's note while the plugin misses some sessions. */
+  pluginHint: {
+    title: (sessions: number) => string
+    text: string
+    command: string
+  }
+  /** Bat-Clawd, read aloud. */
+  mascot: Record<MascotMood, string> & { watching: string }
   /** Who spoke, in a case's last words. */
   speaker: { user: string; assistant: string }
   /** "Case #b47c0d". */
@@ -307,6 +341,41 @@ export const STANDARD_VOICE: Voice = {
     volume: 'Volume',
     test: 'Test',
     testTip: 'Play the spotlight at this volume',
+  },
+  shortcut: {
+    label: 'Global shortcut',
+    hint: {
+      active: 'Opens and folds Bat-Signal from any app',
+      off: 'Off: click to set one',
+      taken: 'Another app (or Windows) already uses it: click to pick another',
+    },
+    recordingHint: 'Esc cancels · Backspace turns it off',
+    pressKeys: 'Press keys',
+    off: 'Off',
+    record: 'Press the new shortcut',
+    change: 'Change the global shortcut',
+  },
+  signal: {
+    openCase: (t) => `Open this ${lower(t.case.one)}`,
+    open: (t, needsYou) => (needsYou ? `Open Bat-Signal: ${t.needsYou.count(needsYou)}` : 'Open Bat-Signal'),
+    openTip: 'Open Bat-Signal · drag to move',
+  },
+  watch: {
+    openPanel: 'Open the full panel',
+    nil: (t) => `No open ${lower(t.case.many)}. Start Claude Code in a terminal to follow it here.`,
+  },
+  terminal: { go: 'Go to the terminal', copied: 'No window found. Resume command copied.' },
+  pluginHint: {
+    title: (sessions) =>
+      `No word from the Bat-Signal plugin for ${sessions === 1 ? 'one session' : `${sessions} sessions`}.`,
+    text: 'Their permission prompts and waits won’t show. Install the plugin once, then restart those sessions:',
+    command: 'claude plugin install bat-signal@bat-signal',
+  },
+  mascot: {
+    sleeping: 'Bat-Clawd is asleep',
+    flying: 'Bat-Clawd is on patrol',
+    alarmed: 'Bat-Clawd needs you',
+    watching: 'Bat-Clawd keeps watch',
   },
   speaker: { user: 'You', assistant: 'Claude' },
   caseNumber: (t, number) => `${t.case.one} ${number}`,
