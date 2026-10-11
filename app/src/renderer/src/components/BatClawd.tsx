@@ -7,7 +7,7 @@
 // blinks or it breathes; CSS loops would keep the compositor busy at 60fps.
 import { useEffect, useRef, useState } from 'react'
 import type { MascotMood } from '@shared/view'
-import { batAt, WINGS } from './BatEmblem'
+import { batAt, useEmblem } from './BatEmblem'
 import { useIsCalm } from '../calm'
 import { useWords } from '../words'
 import { useFrame, useLiveStyle } from '../ticker'
@@ -44,8 +44,6 @@ const COWL: Px[] = [
   [3, 2, 10, 3], // over the eyes, down to the cheekbones
 ]
 const COWL_SHINE: Px[] = [[5, 1, 2, 1]]
-/** The bat emblem across the chest, between the cowl and the legs. */
-const CHEST = batAt(8, 7, 7)
 const EYES_OPEN: Px[] = [
   [5, 3, 2, 1],
   [9, 3, 2, 1],
@@ -117,6 +115,8 @@ function CapeBehind({ style }: { style: CapeStyle }) {
 
 function Frame({ pose, gaze, className }: { pose: Pose; gaze: { x: number; y: number }; className: string }) {
   const wrapped = pose.cape === 'wrapped'
+  // The Theme's emblem across the chest, between the cowl and the legs.
+  const { path: emblem } = useEmblem()
   return (
     <svg className={className} viewBox="-6 -1 28 13" shapeRendering="crispEdges" aria-hidden>
       <CapeBehind style={pose.cape} />
@@ -126,7 +126,12 @@ function Frame({ pose, gaze, className }: { pose: Pose; gaze: { x: number; y: nu
       <g fill="var(--clawd-shade)">{rects(wrapped ? FEET : LEGS)}</g>
       {/* Smooth, not pixel-snapped: at this size the snapped outline breaks into blocks. */}
       {!wrapped && (
-        <path className="clawd__emblem" d={WINGS} transform={CHEST} shapeRendering="geometricPrecision" />
+        <path
+          className="clawd__emblem"
+          d={emblem}
+          transform={batAt(emblem, 8, 7, 7)}
+          shapeRendering="geometricPrecision"
+        />
       )}
       {wrapped && (
         <>
