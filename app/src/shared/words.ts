@@ -38,7 +38,6 @@ export interface Terms {
 
 /** The text that is not a term: headings, sentences, empty states, labels. */
 export interface Voice {
-  product: string
   /** The product's name on the masthead and in the intro. */
   wordmark: string
   /** The title bar's and tabs' buttons. */
@@ -266,7 +265,6 @@ export const STANDARD_TERMS: Terms = {
 }
 
 export const STANDARD_VOICE: Voice = {
-  product: PRODUCT,
   wordmark: 'BAT-SIGNAL',
   chrome: {
     toWatch: 'Shrink to the watch strip',
@@ -369,7 +367,7 @@ export const STANDARD_VOICE: Voice = {
   shortcut: {
     label: 'Global shortcut',
     hint: {
-      active: 'Opens and folds Bat-Signal from any app',
+      active: `Opens and folds ${PRODUCT} from any app`,
       off: 'Off: click to set one',
       taken: 'Another app (or Windows) already uses it: click to pick another',
     },
@@ -387,8 +385,8 @@ export const STANDARD_VOICE: Voice = {
   },
   signal: {
     openCase: (t) => `Open this ${lower(t.case.one)}`,
-    open: (t, needsYou) => (needsYou ? `Open Bat-Signal: ${t.needsYou.count(needsYou)}` : 'Open Bat-Signal'),
-    openTip: 'Open Bat-Signal · drag to move',
+    open: (t, needsYou) => (needsYou ? `Open ${PRODUCT}: ${t.needsYou.count(needsYou)}` : `Open ${PRODUCT}`),
+    openTip: `Open ${PRODUCT} · drag to move`,
   },
   watch: {
     openPanel: 'Open the full panel',
@@ -397,7 +395,7 @@ export const STANDARD_VOICE: Voice = {
   terminal: { go: 'Go to the terminal', copied: 'No window found. Resume command copied.' },
   pluginHint: {
     title: (sessions) =>
-      `No word from the Bat-Signal plugin for ${sessions === 1 ? 'one session' : `${sessions} sessions`}.`,
+      `No word from the ${PRODUCT} plugin for ${sessions === 1 ? 'one session' : `${sessions} sessions`}.`,
     text: 'Their permission prompts and waits won’t show. Install the plugin once, then restart those sessions:',
   },
   mascot: {
