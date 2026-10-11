@@ -12,6 +12,7 @@ import {
   type WindowMode,
 } from '../shared/settings'
 import type { AppStatus } from '../shared/status'
+import { THEMES, type ThemeId } from '../shared/themes'
 import type { StoreSnapshot } from '../shared/types'
 import { DEV_SERVER, isOwnPage, RENDERER_FILE } from './appIpc'
 import { jsonFile } from './jsonFile'
@@ -114,9 +115,10 @@ function displaysPrimaryFirst() {
   return [primary, ...screen.getAllDisplays().filter((d) => d.id !== primary.id)]
 }
 
-function load(win: BrowserWindow, view: 'panel' | 'signal'): void {
-  if (DEV_SERVER) void win.loadURL(`${DEV_SERVER}?view=${view}`)
-  else void win.loadFile(RENDERER_FILE, { query: { view } })
+/** Opens a window's page wearing the Theme, so its first frame already has the Theme's colors. */
+function load(win: BrowserWindow, view: 'panel' | 'signal', theme: ThemeId): void {
+  if (DEV_SERVER) void win.loadURL(`${DEV_SERVER}?view=${view}&theme=${theme}`)
+  else void win.loadFile(RENDERER_FILE, { query: { view, theme } })
 }
 
 const webPreferences = {
@@ -162,7 +164,8 @@ export class BatSignalWindows {
       resizable: true,
       skipTaskbar: true,
       show: false,
-      backgroundColor: '#000000',
+      // What shows before the page paints: the Theme's ground, so opening never flashes another color.
+      backgroundColor: THEMES[settings.theme].ground,
       // Otherwise Electron reports the never-shown panel as visible and its loops keep running.
       paintWhenInitiallyHidden: false,
       webPreferences,
@@ -215,8 +218,8 @@ export class BatSignalWindows {
         app.quit()
       })
 
-    load(this.panel, 'panel')
-    load(this.signal, 'signal')
+    load(this.panel, 'panel', settings.theme)
+    load(this.signal, 'signal', settings.theme)
   }
 
   get mode(): WindowMode {
@@ -269,6 +272,8 @@ export class BatSignalWindows {
 
   apply(settings: Settings): void {
     this.onTop = settings.alwaysOnTop
+    // The signal window is transparent and keeps no ground; the pages change Theme themselves.
+    this.panel.setBackgroundColor(THEMES[settings.theme].ground)
     for (const win of [this.panel, this.signal]) {
       win.setAlwaysOnTop(settings.alwaysOnTop, 'floating')
       win.setOpacity(settings.opacity)
