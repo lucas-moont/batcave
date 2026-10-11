@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { trayLook } from '../src/main/trayMenu'
+import { announce, emptyAnnouncer, toastFor } from '../src/shared/announcer'
 import { diffNotices } from '../src/shared/notices'
+import { DEFAULT_SETTINGS } from '../src/shared/settings'
 import type { AttentionItem, SessionSnapshot, StoreSnapshot } from '../src/shared/types'
 import { attentionCopy, caseHeader } from '../src/shared/view'
 import { STANDARD_TERMS, STANDARD_WORDS, type Words } from '../src/shared/words'
@@ -45,10 +47,18 @@ describe('the words', () => {
     expect(opened?.stamp).toBe('Op opened')
   })
 
-  it('are the standard ones when nothing is passed', () => {
-    expect(attentionCopy(permission).stamp).toBe('Permission')
-    expect(caseHeader(session('s1')).title).toBe('Untitled case')
-    expect(diffNotices(snapshot([]), snapshot([session('s2')]))[0]?.stamp).toBe('Case opened')
+  // The announcer passes STANDARD_WORDS itself: a Windows toast never follows a Theme (CONTEXT.md, Lexicon).
+  it('in a Windows toast are always the standard ones', () => {
+    const ctx = {
+      prefs: {
+        ...DEFAULT_SETTINGS.announce,
+        toast: { needsYou: true, reply: true, taskDone: true, sessions: true },
+      },
+      panelFocused: false,
+    }
+    const { state } = announce(emptyAnnouncer(), snapshot([]), ctx)
+    const { toast } = announce(state, snapshot([session('s2')]), ctx)
+    expect(toastFor(toast)?.title).toBe('Case opened · Untitled case')
   })
 
   // The tray takes no words at all: it can only speak the standard ones (CONTEXT.md, Lexicon).

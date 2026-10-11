@@ -3,6 +3,7 @@
 // the snapshots and the moment's context, gathers each burst (BURST_MS), and makes one toast and
 // one sound of it.
 import { byUrgency, diffNotices, freshen, type Notice, type NoticeKind } from './notices'
+import { STANDARD_WORDS } from './words'
 import type { AnnouncePrefs, NewsGroup } from './settings'
 import type { StoreSnapshot } from './types'
 
@@ -72,7 +73,7 @@ export function announce(
   snapshot: StoreSnapshot,
   ctx: AnnounceContext,
 ): { state: Announcer; toast: Notice[]; sound: Notice[] } {
-  const { fresh, announced } = freshen(state.announced, diffNotices(state.prev, snapshot))
+  const { fresh, announced } = freshen(state.announced, diffNotices(state.prev, snapshot, STANDARD_WORDS))
   const next = { prev: snapshot, announced }
   // With the panel in front, the news is remembered all the same: it was seen there.
   if (ctx.panelFocused) return { state: next, toast: [], sound: [] }

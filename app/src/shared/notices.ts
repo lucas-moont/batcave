@@ -7,7 +7,7 @@ import {
   type StoreSnapshot,
 } from './types'
 import { attentionCopy, caseHeader, folderName } from './view'
-import { STANDARD_WORDS, type Words } from './words'
+import type { Words } from './words'
 
 /** The needs-you alerts worth announcing; a stalled task is not news. */
 const ALERT_KINDS = ['permission', 'error', 'waiting', 'reply'] as const satisfies readonly AttentionKind[]
@@ -65,11 +65,7 @@ const isAnnounced = (a: AttentionItem): a is AttentionItem & { kind: AlertKind }
 const alertKey = (a: AttentionItem) => `${a.sessionId}:${a.kind}:${a.at}`
 
 /** News between two snapshots. The first snapshot announces nothing: it is the state, not news. */
-export function diffNotices(
-  prev: StoreSnapshot | undefined,
-  next: StoreSnapshot,
-  words: Words = STANDARD_WORDS,
-): Notice[] {
+export function diffNotices(prev: StoreSnapshot | undefined, next: StoreSnapshot, words: Words): Notice[] {
   if (!prev) return []
   const { terms, voice } = words
   const before = new Map(prev.sessions.map((s) => [s.sessionId, s]))

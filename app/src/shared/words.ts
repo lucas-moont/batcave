@@ -3,8 +3,9 @@
 // tone a Theme may change but which never renames a term. A Voice line that names a term takes it
 // from the Terms, so turning the Lexicon off can't leave a themed word behind.
 //
-// Windows notifications and the tray always speak STANDARD_WORDS: the functions behind them take
-// no words at all. The panel and the Signal read the Theme's words (see the renderer's useWords).
+// Every presenter takes the words it speaks, with no default, so no caller can fall back on the
+// standard words by forgetting them. Windows notifications (the announcer) and the tray pass
+// STANDARD_WORDS themselves; the panel and the Signal pass the Theme's (the renderer's useWords).
 import type { NewsGroup } from './settings'
 import type { ShortcutStatus } from './status'
 import type { AttentionKind, LiveStatus, RunStatus, TaskStatus } from './types'

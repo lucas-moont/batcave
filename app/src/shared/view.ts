@@ -1,7 +1,7 @@
 // Pure presentation rules shared by the window and its tests.
 import { ATTENTION_URGENCY } from './types'
 import type { AttentionItem, SessionSnapshot, StoreSnapshot, Task, TaskStatus } from './types'
-import { STANDARD_WORDS, type Words } from './words'
+import type { Words } from './words'
 
 export type MascotMood = 'sleeping' | 'flying' | 'alarmed'
 
@@ -15,7 +15,7 @@ export function mascotMood({ sessions, attention }: StoreSnapshot): MascotMood {
 }
 
 /** relativeTime as a phrase: "just now", "5m ago", or empty for missing or invalid times. */
-export function ago(iso: string | undefined, now: Date, { voice }: Words = STANDARD_WORDS): string {
+export function ago(iso: string | undefined, now: Date, { voice }: Words): string {
   const age = relativeTime(iso, now)
   return age === 'now' ? voice.time.justNow : age && voice.time.ago(age)
 }
@@ -48,7 +48,7 @@ const humanize = (code: string): string => {
 }
 
 /** The stamp and detail line of a needs-you card. */
-export function attentionCopy(item: AttentionItem, { terms, voice }: Words = STANDARD_WORDS): CardCopy {
+export function attentionCopy(item: AttentionItem, { terms, voice }: Words): CardCopy {
   const stamp = terms.stamp[item.kind]
   const line = voice.alertLine
   switch (item.kind) {
@@ -66,10 +66,7 @@ export function attentionCopy(item: AttentionItem, { terms, voice }: Words = STA
 }
 
 /** How an alert reads in the night report: the case's title, then this sentence. */
-export function reportCopy(
-  item: AttentionItem,
-  words: Words = STANDARD_WORDS,
-): { stamp: string; sentence: string } {
+export function reportCopy(item: AttentionItem, words: Words): { stamp: string; sentence: string } {
   const stamp = words.terms.stamp[item.kind]
   const sentence = words.voice.reportSentence
   switch (item.kind) {
@@ -94,7 +91,7 @@ export interface CaseHeader {
 }
 
 /** How a session is introduced on its card. */
-export function caseHeader(session: SessionSnapshot, { terms, voice }: Words = STANDARD_WORDS): CaseHeader {
+export function caseHeader(session: SessionSnapshot, { terms, voice }: Words): CaseHeader {
   const done = session.tasks.filter((t) => t.status === 'completed').length
   const total = session.tasks.length
   return {
@@ -199,11 +196,7 @@ export const ALERT_INK: Record<AttentionItem['kind'], 'hot' | 'soft' | 'quiet'> 
 }
 
 /** One row of the watch strip: what a glance at the corner should tell about a session. */
-export function watchRow(
-  session: SessionSnapshot,
-  attention: AttentionItem[],
-  words: Words = STANDARD_WORDS,
-): WatchRow {
+export function watchRow(session: SessionSnapshot, attention: AttentionItem[], words: Words): WatchRow {
   const { title, progress } = caseHeader(session, words)
   const { live } = words.terms
   const own = attention

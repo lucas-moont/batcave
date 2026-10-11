@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { STANDARD_WORDS } from '../src/shared/words'
 import {
   ago,
   attentionCopy,
@@ -113,12 +114,15 @@ describe('attentionCopy', () => {
       { stamp: 'Stalled', line: 'No news on “Scan Gotham”' },
     ],
   ])('%o', (attention, expected) => {
-    expect(attentionCopy(attention)).toEqual(expected)
+    expect(attentionCopy(attention, STANDARD_WORDS)).toEqual(expected)
   })
 
   it('falls back gracefully when details are missing', () => {
-    expect(attentionCopy({ ...base, kind: 'error' })).toEqual({ stamp: 'Error', line: 'The turn failed' })
-    expect(attentionCopy({ ...base, kind: 'stalled' })).toEqual({
+    expect(attentionCopy({ ...base, kind: 'error' }, STANDARD_WORDS)).toEqual({
+      stamp: 'Error',
+      line: 'The turn failed',
+    })
+    expect(attentionCopy({ ...base, kind: 'stalled' }, STANDARD_WORDS)).toEqual({
       stamp: 'Stalled',
       line: 'A task has gone quiet',
     })
@@ -135,12 +139,14 @@ describe('caseHeader', () => {
 
   it('numbers the case from its session id and uses its title', () => {
     const s = { ...session('idle'), sessionId: 'b47c0de1-9a2f-4e11', title: 'Fix the Batmobile' }
-    expect(caseHeader(s)).toMatchObject({ number: '#b47c0d', title: 'Fix the Batmobile' })
+    expect(caseHeader(s, STANDARD_WORDS)).toMatchObject({ number: '#b47c0d', title: 'Fix the Batmobile' })
   })
 
   it('falls back to the session name, then to a placeholder', () => {
-    expect(caseHeader({ ...session('idle'), name: 'wayne-enterprises-1' }).title).toBe('wayne-enterprises-1')
-    expect(caseHeader(session('idle')).title).toBe('Untitled case')
+    expect(caseHeader({ ...session('idle'), name: 'wayne-enterprises-1' }, STANDARD_WORDS).title).toBe(
+      'wayne-enterprises-1',
+    )
+    expect(caseHeader(session('idle'), STANDARD_WORDS).title).toBe('Untitled case')
   })
 
   it('counts finished tasks', () => {
@@ -148,11 +154,11 @@ describe('caseHeader', () => {
       ...session('busy'),
       tasks: [task('1', 'completed'), task('2', 'in_progress'), task('3', 'pending')],
     }
-    expect(caseHeader(s).progress).toEqual({ done: 1, total: 3, label: '1/3' })
+    expect(caseHeader(s, STANDARD_WORDS).progress).toEqual({ done: 1, total: 3, label: '1/3' })
   })
 
   it('has no progress without tasks', () => {
-    expect(caseHeader(session('idle')).progress).toBeUndefined()
+    expect(caseHeader(session('idle'), STANDARD_WORDS).progress).toBeUndefined()
   })
 })
 
@@ -202,7 +208,7 @@ describe('ago', () => {
     [undefined, ''],
     ['nonsense', ''],
   ])('%s → %j', (iso, expected) => {
-    expect(ago(iso, now)).toBe(expected)
+    expect(ago(iso, now, STANDARD_WORDS)).toBe(expected)
   })
 })
 
@@ -287,7 +293,7 @@ describe('reportCopy', () => {
       { stamp: 'Stalled', sentence: 'has gone quiet on “Scan Gotham”' },
     ],
   ])('%o', (item, expected) => {
-    expect(reportCopy(item)).toEqual(expected)
+    expect(reportCopy(item, STANDARD_WORDS)).toEqual(expected)
   })
 })
 
@@ -313,10 +319,11 @@ describe('watchRow', () => {
   })
 
   it('leads with what waits for the user, the most urgent first', () => {
-    const row = watchRow(s('busy'), [
-      alert('reply'),
-      alert('permission', { toolName: 'Bash', detail: 'rm -rf ./x' }),
-    ])
+    const row = watchRow(
+      s('busy'),
+      [alert('reply'), alert('permission', { toolName: 'Bash', detail: 'rm -rf ./x' })],
+      STANDARD_WORDS,
+    )
     expect(row).toEqual({
       tone: 'hot',
       stamp: 'Permission',
@@ -331,7 +338,7 @@ describe('watchRow', () => {
       task('2', 'in_progress', 'Profiling the ignition'),
       task('3', 'pending'),
     ]
-    expect(watchRow(s('busy', { tasks }), [])).toEqual({
+    expect(watchRow(s('busy', { tasks }), [], STANDARD_WORDS)).toEqual({
       tone: 'working',
       stamp: 'Working',
       title: 'Tune the Batmobile',
@@ -341,16 +348,20 @@ describe('watchRow', () => {
   })
 
   it('keeps an idle session to one line', () => {
-    expect(watchRow(s('idle'), [])).toEqual({ tone: 'idle', stamp: 'Idle', title: 'Tune the Batmobile' })
+    expect(watchRow(s('idle'), [], STANDARD_WORDS)).toEqual({
+      tone: 'idle',
+      stamp: 'Idle',
+      title: 'Tune the Batmobile',
+    })
   })
 
   it('reads waiting work softer than blocked work, and a stalled task quietest', () => {
-    expect(watchRow(s('idle'), [alert('waiting')]).tone).toBe('soft')
-    expect(watchRow(s('idle'), [alert('stalled', { detail: 'Scan' })]).tone).toBe('quiet')
+    expect(watchRow(s('idle'), [alert('waiting')], STANDARD_WORDS).tone).toBe('soft')
+    expect(watchRow(s('idle'), [alert('stalled', { detail: 'Scan' })], STANDARD_WORDS).tone).toBe('quiet')
   })
 
   it('ignores alerts that belong to other sessions', () => {
-    expect(watchRow(s('idle'), [alert('error', { sessionId: 'other' })]).tone).toBe('idle')
+    expect(watchRow(s('idle'), [alert('error', { sessionId: 'other' })], STANDARD_WORDS).tone).toBe('idle')
   })
 })
 
