@@ -71,6 +71,8 @@ What leaves the store is a `StoreSnapshot` (`app/src/shared/types.ts`): `session
 
 **Notices** are news, found by comparing two snapshots: `diffNotices` in `app/src/shared/notices.ts`. A notice is a new alert (any kind except `stalled`), a `task-done`, a `session-opened` or a `session-closed`. Each has a stable `key`, so the same news is never announced twice. The first snapshot announces nothing, because it is the starting state, not news. Two consumers diff snapshots on their own: the signal page, for its notice cards (`app/src/shared/noticeQueue.ts`), and the main process, for toasts and sound (`app/src/shared/announcer.ts`).
 
+**Words** live in one catalogue, `app/src/shared/words.ts`, in the two parts `CONTEXT.md` names: the Terms a Lexicon may rename (Case, Needs you, the stamps, the states) and the Voice, every other line. A Voice line that names a term is a function of the Terms. The shared presenters (`attentionCopy`, `reportCopy`, `caseHeader`, `watchRow`, `diffNotices`) take the words as a parameter and default to `STANDARD_WORDS`. The panel and the Signal pass theirs through `useWords()` (`app/src/renderer/src/words.ts`). The tray and the toasts pass none, so they always speak the standard words. `app/test/uiText.test.ts` fails on UI text written inside a component.
+
 ## The main process
 
 `app/src/main/index.ts` wires it all up. `startBatSignal` (`batSignal.ts`) starts the sources and store, and hands each snapshot to the windows, the tray and the announcer. With `BAT_SIGNAL_DEMO` set, it serves made-up sessions from `app/src/shared/demo.ts` instead.
