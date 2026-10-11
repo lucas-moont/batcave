@@ -2,6 +2,7 @@
 // needs you. What it shows and offers comes from trayMenu.ts; this only talks to Electron.
 import { app, Menu, Tray } from 'electron'
 import type { StoreSnapshot } from '../shared/types'
+import { TRAY_WORDS } from '../shared/words'
 import { trayLook, trayMenu, type TrayAction } from './trayMenu'
 import type { BatSignalWindows } from './window'
 import restIcon from '../../resources/icons/tray.ico?asset'
@@ -19,7 +20,7 @@ export class BatSignalTray {
 
   constructor(private readonly windows: BatSignalWindows) {
     this.tray = new Tray(restIcon)
-    this.tray.setToolTip('Bat-Signal')
+    this.tray.setToolTip(TRAY_WORDS.name)
     this.tray.on('click', () => {
       const now = Date.now()
       if (now - this.lastClick < DOUBLE_CLICK_MS) return

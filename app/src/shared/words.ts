@@ -157,7 +157,6 @@ export interface Voice {
   pluginHint: {
     title: (sessions: number) => string
     text: string
-    command: string
   }
   /** Bat-Clawd, read aloud. */
   mascot: Record<MascotMood, string> & { watching: string }
@@ -195,16 +194,6 @@ export interface Voice {
     opened: string
     closed: string
   }
-  tray: {
-    allQuiet: string
-    show: string
-    hide: string
-    disc: string
-    panel: string
-    watch: string
-    settings: string
-    quit: string
-  }
 }
 
 /** A setting's label and the line under it. */
@@ -228,6 +217,25 @@ const asClause = (label: string) => (label.charAt(0).toLowerCase() + label.slice
 const DAY = new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: '2-digit', month: 'short' })
 const TIME = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false })
 
+/** The product's name, the same under every Theme. */
+export const PRODUCT = 'Bat-Signal'
+
+/** The command that installs the plugin: typed into a terminal, so never re-voiced. */
+export const PLUGIN_INSTALL = 'claude plugin install bat-signal@bat-signal'
+
+/** The tray's words. Not part of any Voice: the tray never follows a Theme (CONTEXT.md, Lexicon). */
+export const TRAY_WORDS = {
+  name: PRODUCT,
+  allQuiet: 'all quiet',
+  show: `Show ${PRODUCT}`,
+  hide: `Hide ${PRODUCT}`,
+  disc: 'Disc',
+  panel: 'Panel',
+  watch: 'Watch strip',
+  settings: 'Settings…',
+  quit: `Quit ${PRODUCT}`,
+}
+
 export const STANDARD_TERMS: Terms = {
   case: { one: 'Case', many: 'Cases' },
   needsYou: { label: 'Needs you', count: (n) => `${n} need${n === 1 ? 's' : ''} you` },
@@ -247,7 +255,7 @@ export const STANDARD_TERMS: Terms = {
 }
 
 export const STANDARD_VOICE: Voice = {
-  product: 'Bat-Signal',
+  product: PRODUCT,
   wordmark: 'BAT-SIGNAL',
   chrome: {
     toWatch: 'Shrink to the watch strip',
@@ -370,7 +378,6 @@ export const STANDARD_VOICE: Voice = {
     title: (sessions) =>
       `No word from the Bat-Signal plugin for ${sessions === 1 ? 'one session' : `${sessions} sessions`}.`,
     text: 'Their permission prompts and waits won’t show. Install the plugin once, then restart those sessions:',
-    command: 'claude plugin install bat-signal@bat-signal',
   },
   mascot: {
     sleeping: 'Bat-Clawd is asleep',
@@ -400,16 +407,6 @@ export const STANDARD_VOICE: Voice = {
   untitled: (t) => `Untitled ${lower(t.case.one)}`,
   unknown: (t) => `Unknown ${lower(t.case.one)}`,
   noticeLine: { opened: 'New session', closed: 'Session ended' },
-  tray: {
-    allQuiet: 'all quiet',
-    show: 'Show Bat-Signal',
-    hide: 'Hide Bat-Signal',
-    disc: 'Disc',
-    panel: 'Panel',
-    watch: 'Watch strip',
-    settings: 'Settings…',
-    quit: 'Quit Bat-Signal',
-  },
 }
 
 /** The words of every surface that never follows a Theme, and of the default Theme. */
