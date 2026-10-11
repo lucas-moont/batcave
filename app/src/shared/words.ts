@@ -5,6 +5,7 @@
 //
 // Windows notifications and the tray always speak STANDARD_WORDS: the functions behind them take
 // no words at all. The panel and the Signal read the Theme's words (see the renderer's useWords).
+import type { NewsGroup } from './settings'
 import type { AttentionKind, LiveStatus, RunStatus, TaskStatus } from './types'
 
 /** A noun in the singular and the plural: Case, Cases (or a Theme's Op, Ops). */
@@ -85,6 +86,46 @@ export interface Voice {
     /** The report's last line, which a Theme may vary with how much still awaits the user. */
     end: (waiting: number) => string
   }
+  /** The drawer for a task, a subagent or a background command. */
+  drawer: {
+    close: string
+    brief: string
+    rightNow: string
+    timeline: string
+    type: string
+    latestWord: string
+    outcome: string
+    orders: string
+    timing: string
+    command: string
+    started: (ago: string) => string
+    finished: (ago: string) => string
+    ended: (ago: string) => string
+    taskKicker: (id: string, state: string) => string
+    subagentKicker: (state: string) => string
+    backgroundKicker: (state: string) => string
+  }
+  settings: {
+    kicker: string
+    title: string
+    look: string
+    comfort: string
+    notifications: string
+    sound: string
+    animations: Setting
+    atmosphere: { label: string; hint: (t: Terms) => string }
+    layout: Setting
+    onTop: Setting
+    opacity: string
+    startup: Setting & { blocked: string }
+    allToasts: Setting & { some: (on: number, of: number) => string }
+    eachKind: string
+    toast: (t: Terms) => Record<NewsGroup, Setting>
+    soundOn: Setting
+    volume: string
+    test: string
+    testTip: string
+  }
   /** Who spoke, in a case's last words. */
   speaker: { user: string; assistant: string }
   /** "Case #b47c0d". */
@@ -129,6 +170,12 @@ export interface Voice {
     settings: string
     quit: string
   }
+}
+
+/** A setting's label and the line under it. */
+export interface Setting {
+  label: string
+  hint: string
 }
 
 export interface Words {
@@ -208,6 +255,58 @@ export const STANDARD_VOICE: Voice = {
     lastWord: 'Last word:',
     nothingOnFile: 'No tasks, subagents or background work on file.',
     end: () => 'End of report.',
+  },
+  drawer: {
+    close: 'Close',
+    brief: 'Brief',
+    rightNow: 'Right now',
+    timeline: 'Timeline',
+    type: 'Type',
+    latestWord: 'Latest word',
+    outcome: 'Outcome',
+    orders: 'Orders',
+    timing: 'Timing',
+    command: 'Command',
+    started: (ago) => `Started ${ago}`,
+    finished: (ago) => `finished ${ago}`,
+    ended: (ago) => `ended ${ago}`,
+    taskKicker: (id, state) => `Task ${id} · ${state}`,
+    subagentKicker: (state) => `Subagent · ${state}`,
+    backgroundKicker: (state) => `Background · ${state}`,
+  },
+  settings: {
+    kicker: 'Bat-Computer',
+    title: 'Settings',
+    look: 'Look',
+    comfort: 'Comfort',
+    notifications: 'Windows notifications',
+    sound: 'Sound',
+    animations: { label: 'Animations', hint: 'Intro, flying mascot, typewriter and transitions' },
+    atmosphere: { label: 'Rain', hint: (t) => `Gotham weather behind the ${lower(t.case.many)}` },
+    layout: { label: 'Night report', hint: 'Read the panel as one typed report instead of case files' },
+    onTop: { label: 'Always on top', hint: 'Keep the window above everything else' },
+    opacity: 'Opacity',
+    startup: {
+      label: 'Start with Windows',
+      hint: 'Wakes as the disc when you sign in',
+      blocked: 'Turned off in Task Manager: switch it on here to allow it again',
+    },
+    allToasts: {
+      label: 'All notifications',
+      hint: 'Every kind of news below',
+      some: (on, of) => `${on} of ${of} on`,
+    },
+    eachKind: 'Each kind of news',
+    toast: (t) => ({
+      needsYou: { label: 'Claude needs you', hint: 'A permission, an error or a question' },
+      reply: { label: 'Reply ready', hint: 'Claude finished replying' },
+      taskDone: { label: 'Task done', hint: `A task checked off on a ${lower(t.case.one)}` },
+      sessions: { label: `${t.case.one} opened or closed`, hint: 'A session starts or ends' },
+    }),
+    soundOn: { label: 'Sound', hint: 'A spotlight coming on when Claude needs you or replies' },
+    volume: 'Volume',
+    test: 'Test',
+    testTip: 'Play the spotlight at this volume',
   },
   speaker: { user: 'You', assistant: 'Claude' },
   caseNumber: (t, number) => `${t.case.one} ${number}`,

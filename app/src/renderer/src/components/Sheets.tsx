@@ -6,14 +6,15 @@ import {
   OPACITY_MAX,
   OPACITY_MIN,
   type AnnouncePrefs,
-  type NewsGroup,
   type Settings,
   type SettingsPatch,
   toastsOn,
 } from '@shared/settings'
 import type { AppStatus } from '@shared/status'
 import type { BackgroundJob, SessionSnapshot, Subagent, Task } from '@shared/types'
-import { ago, RUN_STATUS_LABEL, TASK_STATUS_LABEL } from '@shared/view'
+import { ago } from '@shared/view'
+import type { Words } from '@shared/words'
+import { useWords } from '../hooks'
 import type { SheetTarget } from './CaseDetail'
 import { batSignal } from '../bridge'
 import { playCue } from '../cues'
@@ -35,6 +36,7 @@ function Sheet({
   onClose: () => void
   children: ReactNode
 }) {
+  const { voice } = useWords()
   return (
     <div className="sheet-layer" role="dialog" aria-modal aria-label={title}>
       <motion.div
@@ -58,7 +60,7 @@ function Sheet({
             <span className="case-number">{kicker}</span>
             <h2 className="sheet__title">{title}</h2>
           </div>
-          <button className="icon-button" onClick={onClose} aria-label="Close">
+          <button className="icon-button" onClick={onClose} aria-label={voice.drawer.close}>
             <Icon name="close" />
           </button>
         </div>
@@ -78,16 +80,20 @@ function Field({ label, children, mono }: { label: string; children: ReactNode; 
 }
 
 function TaskBody({ task, now }: { task: Task; now: Date }) {
+  const words = useWords()
+  const { terms, voice } = words
   return (
     <>
-      {task.description && <Field label="Brief">{task.description}</Field>}
-      {task.activeForm && task.status === 'in_progress' && <Field label="Right now">{task.activeForm}</Field>}
-      <Field label="Timeline">
+      {task.description && <Field label={voice.drawer.brief}>{task.description}</Field>}
+      {task.activeForm && task.status === 'in_progress' && (
+        <Field label={voice.drawer.rightNow}>{task.activeForm}</Field>
+      )}
+      <Field label={voice.drawer.timeline}>
         <ol className="timeline">
           {[...task.history].reverse().map((h, i) => (
             <li key={`${h.at}:${i}`} className={`timeline__step timeline__step--${h.status}`}>
-              <span className="timeline__what">{TASK_STATUS_LABEL[h.status]}</span>
-              <span className="card__time">{ago(h.at, now)}</span>
+              <span className="timeline__what">{terms.task[h.status]}</span>
+              <span className="card__time">{ago(h.at, now, words)}</span>
             </li>
           ))}
         </ol>
@@ -97,19 +103,20 @@ function TaskBody({ task, now }: { task: Task; now: Date }) {
 }
 
 function SubagentBody({ agent, now }: { agent: Subagent; now: Date }) {
+  const { voice } = useWords()
   return (
     <>
-      <Field label="Type">
+      <Field label={voice.drawer.type}>
         <span className="chip">{agent.agentType}</span>
       </Field>
-      {agent.lastMessage && <Field label="Latest word">{agent.lastMessage}</Field>}
-      {agent.summary && <Field label="Outcome">{agent.summary}</Field>}
+      {agent.lastMessage && <Field label={voice.drawer.latestWord}>{agent.lastMessage}</Field>}
+      {agent.summary && <Field label={voice.drawer.outcome}>{agent.summary}</Field>}
       {agent.prompt && (
-        <Field label="Orders" mono>
+        <Field label={voice.drawer.orders} mono>
           {agent.prompt}
         </Field>
       )}
-      <Timing started={agent.startedAt} ended={agent.endedAt} endedWord="finished" now={now} />
+      <Timing started={agent.startedAt} ended={agent.endedAt} endedAs={voice.drawer.finished} now={now} />
     </>
   )
 }
@@ -118,28 +125,33 @@ function SubagentBody({ agent, now }: { agent: Subagent; now: Date }) {
 function Timing({
   started,
   ended,
-  endedWord,
+  endedAs,
   now,
 }: {
   started: string
   ended?: string
-  endedWord: string
+  /** How the end reads: "finished 2m ago", "ended 2m ago". */
+  endedAs: (ago: string) => string
   now: Date
 }) {
-  const parts = [
-    ago(started, now) && `Started ${ago(started, now)}`,
-    ended && ago(ended, now) && `${endedWord} ${ago(ended, now)}`,
-  ].filter(Boolean)
-  return parts.length ? <Field label="Timing">{parts.join(' · ')}</Field> : null
+  const words = useWords()
+  const { voice } = words
+  const startedAgo = ago(started, now, words)
+  const endedAgo = ended && ago(ended, now, words)
+  const parts = [startedAgo && voice.drawer.started(startedAgo), endedAgo && endedAs(endedAgo)].filter(
+    Boolean,
+  )
+  return parts.length ? <Field label={voice.drawer.timing}>{parts.join(' · ')}</Field> : null
 }
 
 function JobBody({ job, now }: { job: BackgroundJob; now: Date }) {
+  const { voice } = useWords()
   return (
     <>
-      <Field label="Command" mono>
+      <Field label={voice.drawer.command} mono>
         {job.command}
       </Field>
-      <Timing started={job.startedAt} ended={job.endedAt} endedWord="ended" now={now} />
+      <Timing started={job.startedAt} ended={job.endedAt} endedAs={voice.drawer.ended} now={now} />
     </>
   )
 }
@@ -151,13 +163,18 @@ interface SheetContent {
 }
 
 /** What the drawer shows for a target, or nothing if it is gone from the session. */
-function resolve(session: SessionSnapshot, { kind, id }: SheetTarget, now: Date): SheetContent | undefined {
+function resolve(
+  session: SessionSnapshot,
+  { kind, id }: SheetTarget,
+  now: Date,
+  { terms, voice }: Words,
+): SheetContent | undefined {
   switch (kind) {
     case 'task': {
       const task = session.tasks.find((t) => t.id === id)
       return (
         task && {
-          kicker: `Task ${task.id} · ${TASK_STATUS_LABEL[task.status]}`,
+          kicker: voice.drawer.taskKicker(task.id, terms.task[task.status]),
           title: task.subject,
           body: <TaskBody task={task} now={now} />,
         }
@@ -167,7 +184,7 @@ function resolve(session: SessionSnapshot, { kind, id }: SheetTarget, now: Date)
       const agent = session.subagents.find((a) => a.toolUseId === id)
       return (
         agent && {
-          kicker: `Subagent · ${RUN_STATUS_LABEL[agent.status]}`,
+          kicker: voice.drawer.subagentKicker(terms.run[agent.status]),
           title: agent.description,
           body: <SubagentBody agent={agent} now={now} />,
         }
@@ -177,7 +194,7 @@ function resolve(session: SessionSnapshot, { kind, id }: SheetTarget, now: Date)
       const job = session.background.find((j) => j.id === id)
       return (
         job && {
-          kicker: `Background · ${RUN_STATUS_LABEL[job.status]}`,
+          kicker: voice.drawer.backgroundKicker(terms.run[job.status]),
           title: job.description ?? job.command,
           body: <JobBody job={job} now={now} />,
         }
@@ -198,7 +215,7 @@ export function DetailSheet({
   now: Date
   onClose: () => void
 }) {
-  const content = resolve(session, target, now)
+  const content = resolve(session, target, now, useWords())
   if (!content) return null
   return (
     <Sheet kicker={content.kicker} title={content.title} onClose={onClose}>
@@ -250,12 +267,13 @@ function AllToasts({
   toast: AnnouncePrefs['toast']
   onChange: (patch: SettingsPatch) => void
 }) {
+  const { allToasts } = useWords().voice.settings
   const on = toastsOn(toast)
   const all = on === NEWS_GROUPS.length
   return (
     <Toggle
-      label="All notifications"
-      hint={on === 0 || all ? 'Every kind of news below' : `${on} of ${NEWS_GROUPS.length} on`}
+      label={allToasts.label}
+      hint={on === 0 || all ? allToasts.hint : allToasts.some(on, NEWS_GROUPS.length)}
       on={all}
       mixed={on > 0 && !all}
       onChange={(next) => onChange(everyToast(next))}
@@ -301,14 +319,6 @@ function PercentSlider({
   )
 }
 
-/** A Windows notification switch per kind of news (none while the panel is in front). */
-const TOAST_SWITCHES: Record<NewsGroup, { label: string; hint: string }> = {
-  needsYou: { label: 'Claude needs you', hint: 'A permission, an error or a question' },
-  reply: { label: 'Reply ready', hint: 'Claude finished replying' },
-  taskDone: { label: 'Task done', hint: 'A task checked off on a case' },
-  sessions: { label: 'Case opened or closed', hint: 'A session starts or ends' },
-}
-
 export function SettingsSheet({
   settings,
   status,
@@ -322,89 +332,85 @@ export function SettingsSheet({
 }) {
   // What Windows has may have moved since (Task Manager): read it again as the sheet opens.
   useEffect(() => batSignal.refreshStatus(), [])
+  const { terms, voice } = useWords()
+  const say = voice.settings
+  // A Windows notification switch per kind of news (none while the panel is in front).
+  const toastSwitches = say.toast(terms)
   const blocked = status.startup === 'blocked'
   return (
-    <Sheet kicker="Bat-Computer" title="Settings" onClose={onClose}>
+    <Sheet kicker={say.kicker} title={say.title} onClose={onClose}>
       <div className="settings">
-        <Section title="Look">
+        <Section title={say.look}>
           <Toggle
-            label="Animations"
-            hint="Intro, flying mascot, typewriter and transitions"
+            {...say.animations}
             on={settings.animations}
             onChange={(animations) => onChange({ animations })}
           />
           <Toggle
-            label="Rain"
-            hint="Gotham weather behind the cases"
+            label={say.atmosphere.label}
+            hint={say.atmosphere.hint(terms)}
             on={settings.rain}
             onChange={(rain) => onChange({ rain })}
           />
           <Toggle
-            label="Night report"
-            hint="Read the panel as one typed report instead of case files"
+            {...say.layout}
             on={settings.layout === 'report'}
             onChange={(on) => onChange({ layout: on ? 'report' : 'files' })}
           />
           <Toggle
-            label="Always on top"
-            hint="Keep the window above everything else"
+            {...say.onTop}
             on={settings.alwaysOnTop}
             onChange={(alwaysOnTop) => onChange({ alwaysOnTop })}
           />
           <PercentSlider
-            label="Opacity"
+            label={say.opacity}
             min={OPACITY_MIN}
             max={OPACITY_MAX}
             value={settings.opacity}
             onChange={(opacity) => onChange({ opacity })}
           />
         </Section>
-        <Section title="Comfort">
+        <Section title={say.comfort}>
           <ShortcutField status={status.shortcut} onChange={(shortcut) => onChange({ shortcut })} />
           <Toggle
-            label="Start with Windows"
-            hint={
-              blocked
-                ? 'Turned off in Task Manager: switch it on here to allow it again'
-                : 'Wakes as the disc when you sign in'
-            }
+            label={say.startup.label}
+            hint={blocked ? say.startup.blocked : say.startup.hint}
             warn={blocked}
             on={status.startup === 'on'}
             onChange={batSignal.setStartWithWindows}
           />
         </Section>
-        <Section title="Windows notifications">
+        <Section title={say.notifications}>
           <AllToasts toast={settings.announce.toast} onChange={onChange} />
-          <div className="toggle-group" role="group" aria-label="Each kind of news">
+          <div className="toggle-group" role="group" aria-label={say.eachKind}>
             {NEWS_GROUPS.map((group) => (
               <Toggle
                 key={group}
-                {...TOAST_SWITCHES[group]}
+                {...toastSwitches[group]}
                 on={settings.announce.toast[group]}
                 onChange={(on) => onChange({ announce: { toast: { [group]: on } } })}
               />
             ))}
           </div>
         </Section>
-        <Section title="Sound">
+        <Section title={say.sound}>
           <Toggle
-            label="Sound"
-            hint="A spotlight coming on when Claude needs you or replies"
+            {...say.soundOn}
             on={settings.announce.sound}
             onChange={(sound) => onChange({ announce: { sound } })}
           />
           <PercentSlider
-            label="Volume"
+            label={say.volume}
             value={settings.announce.volume}
             onChange={(volume) => onChange({ announce: { volume } })}
           >
             <button
               className="icon-button icon-button--labelled"
               onClick={() => playCue('light', settings.announce.volume)}
-              title="Play the spotlight at this volume"
+              title={say.testTip}
             >
               <Icon name="sound" />
-              Test
+              {say.test}
             </button>
           </PercentSlider>
         </Section>
