@@ -1,6 +1,4 @@
 .clawd {
-  --cowl: #0b0908;
-  --clawd-shade: #b85f42;
   position: relative;
   display: inline-block;
   cursor: pointer;
@@ -20,33 +18,33 @@
   overflow: visible;
 }
 
-/* The chest emblem, in the cowl's black. */
+/* The chest emblem: in VENGEANCE, the cowl's black. */
 .clawd__emblem {
-  fill: var(--cowl);
+  fill: var(--chest);
 }
 /* A black cape: its red edge makes it read on the pure-black window. */
 .clawd__cape {
-  fill: #000;
-  stroke: var(--signal);
+  fill: var(--cape);
+  stroke: var(--cape-rim);
   stroke-width: 0.35;
   stroke-linejoin: round;
 }
 /* Drawn behind the face, so only the outer half of the stroke shows. */
 .clawd__cowl-edge {
   fill: none;
-  stroke: var(--signal);
+  stroke: var(--cowl-edge);
   stroke-width: 0.7;
   stroke-linejoin: miter;
 }
 /* Open, it stays black inside: one red thread runs along the hem, about a screen pixel wide. */
 .clawd__thread {
   fill: none;
-  stroke: var(--blood);
+  stroke: var(--thread);
   stroke-width: 0.45;
   stroke-linejoin: round;
 }
 .clawd__seam {
-  fill: var(--blood);
+  fill: var(--thread);
 }
 
 /* A click sends it up for a short flight: a one-off animation, not a loop. */

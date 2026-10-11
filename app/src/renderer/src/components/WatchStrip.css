@@ -17,7 +17,7 @@
   height: 34px;
   padding: 0 4px 0 10px;
   border-bottom: 1px solid var(--line);
-  background: linear-gradient(180deg, #0c0a09, #000);
+  background: linear-gradient(180deg in srgb, var(--header-fade), var(--abyss));
   -webkit-app-region: drag;
 }
 .watch__name {
@@ -27,7 +27,7 @@
   font-size: 15px;
   letter-spacing: 1.8px;
   text-transform: uppercase;
-  color: var(--signal);
+  color: var(--accent);
 }
 .watch__count {
   font-size: 11px;
@@ -78,7 +78,7 @@
   transition: background 0.15s;
 }
 li + li > .watch-row {
-  border-top: 1px solid rgb(49 48 47 / 55%);
+  border-top: 1px solid color-mix(in srgb, var(--line) 55%, transparent);
 }
 .watch-row:hover {
   background: var(--surface);
@@ -149,7 +149,7 @@ li + li > .watch-row {
   color: var(--ash);
 }
 .watch-row--idle .watch-row__title {
-  color: #cfc6be;
+  color: var(--bone-dim);
   font-weight: 500;
 }
 

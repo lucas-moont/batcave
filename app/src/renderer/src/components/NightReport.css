@@ -2,7 +2,6 @@
    the margin, red pen on whatever waits for you. */
 .report {
   --margin: 114px;
-  --ink: #bdb4aa;
   position: relative;
   padding: 8px 10px 20px 0;
   font-family: var(--font-type);
@@ -18,11 +17,11 @@
   bottom: 0;
   left: var(--margin);
   width: 1px;
-  background: rgb(139 0 0 / 75%);
+  background: var(--report-rule);
   pointer-events: none;
 }
 .report ::selection {
-  background: rgb(175 0 6 / 55%);
+  background: color-mix(in srgb, var(--accent) 55%, transparent);
   color: var(--bone);
 }
 
@@ -118,7 +117,7 @@
   transition: background 0.15s;
 }
 .entry:hover {
-  background: rgb(39 21 14 / 45%);
+  background: color-mix(in srgb, var(--raised) 45%, transparent);
 }
 .entry:focus-visible {
   outline: 1px solid var(--bone);
@@ -237,7 +236,7 @@
   cursor: pointer;
 }
 .note:hover {
-  background: rgb(39 21 14 / 50%);
+  background: color-mix(in srgb, var(--raised) 50%, transparent);
 }
 .note:focus-visible {
   outline: 1px solid var(--bone);
@@ -261,7 +260,7 @@
 .note--done .note__text {
   color: var(--ash);
   text-decoration: line-through;
-  text-decoration-color: rgb(138 129 122 / 60%);
+  text-decoration-color: color-mix(in srgb, var(--ash) 60%, transparent);
 }
 
 .report__end {

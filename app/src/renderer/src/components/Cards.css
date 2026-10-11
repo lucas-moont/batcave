@@ -15,7 +15,11 @@
   gap: 3px;
   width: 100%;
   padding: 8px 10px 9px 12px;
-  background: linear-gradient(180deg, rgb(19 16 14 / 92%), rgb(13 11 10 / 92%));
+  background: linear-gradient(
+    180deg in srgb,
+    color-mix(in srgb, var(--surface) 92%, transparent),
+    color-mix(in srgb, var(--surface-deep) 92%, transparent)
+  );
   border: 1px solid var(--line);
   border-radius: var(--radius);
   cursor: pointer;
@@ -27,12 +31,16 @@
 }
 .card:hover {
   transform: translateY(-2px);
-  background: linear-gradient(180deg, rgb(39 21 14 / 95%), rgb(19 16 14 / 95%));
-  box-shadow: 0 6px 18px -8px var(--signal-glow);
-  border-color: rgb(175 0 6 / 45%);
+  background: linear-gradient(
+    180deg in srgb,
+    color-mix(in srgb, var(--raised) 95%, transparent),
+    color-mix(in srgb, var(--surface) 95%, transparent)
+  );
+  box-shadow: 0 6px 18px -8px var(--accent-glow);
+  border-color: var(--accent-glow);
 }
 .card:focus-visible {
-  outline: 1px solid var(--signal);
+  outline: 1px solid var(--accent);
   outline-offset: 2px;
 }
 
@@ -114,7 +122,7 @@
   font-size: 11px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--signal-hot);
+  color: var(--stamp-hot);
   border: 1.5px solid currentColor;
   border-radius: 2px;
   /* The typewriter face sits high in its line: more room above than below centres the words. */
@@ -126,10 +134,10 @@
 }
 .card--waiting .stamp,
 .card--reply .stamp {
-  color: #c9463d;
+  color: var(--stamp-soft);
 }
 .card--stalled .stamp {
-  color: var(--ash);
+  color: var(--stamp-quiet);
 }
 
 .case-number {
@@ -186,8 +194,8 @@
 .progress__fill {
   position: absolute;
   inset: 0 auto 0 0;
-  background: linear-gradient(90deg, var(--blood), var(--signal-hot));
-  box-shadow: 0 0 6px var(--signal-glow);
+  background: linear-gradient(90deg in srgb, var(--accent-deep), var(--accent-hot));
+  box-shadow: 0 0 6px var(--accent-glow);
 }
 .progress__label {
   font-family: var(--font-mono);

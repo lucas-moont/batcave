@@ -9,7 +9,7 @@
 .sheet-backdrop {
   position: absolute;
   inset: 0;
-  background: rgb(0 0 0 / 62%);
+  background: color-mix(in srgb, var(--shadow) 62%, transparent);
   backdrop-filter: blur(1.5px);
 }
 
@@ -18,10 +18,10 @@
   max-height: 78%;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, #1a1411, #0d0b0a 40%);
-  border-top: 1px solid rgb(175 0 6 / 50%);
+  background: linear-gradient(180deg in srgb, var(--sheet-top), var(--surface-deep) 40%);
+  border-top: 1px solid color-mix(in srgb, var(--accent) 50%, transparent);
   border-radius: 10px 10px 0 0;
-  box-shadow: 0 -12px 34px -12px var(--signal-glow);
+  box-shadow: 0 -12px 34px -12px var(--accent-glow);
 }
 .sheet__grip {
   width: 34px;
@@ -122,9 +122,9 @@
   background: var(--ash);
 }
 .timeline__step--in_progress::before {
-  border-color: var(--signal-hot);
-  background: var(--signal-hot);
-  box-shadow: 0 0 6px var(--signal);
+  border-color: var(--in-progress);
+  background: var(--in-progress);
+  box-shadow: 0 0 6px var(--in-progress-glow);
 }
 
 /* Switches: a red light that comes on. */
@@ -182,16 +182,16 @@
     background 0.2s;
 }
 .toggle input:checked + .toggle__track {
-  background: rgb(139 0 0 / 55%);
-  border-color: var(--signal);
+  background: color-mix(in srgb, var(--accent-deep) 55%, transparent);
+  border-color: var(--accent);
 }
 .toggle input:checked + .toggle__track::after {
   transform: translateX(16px);
   background: var(--bone);
-  box-shadow: 0 0 8px var(--signal-glow);
+  box-shadow: 0 0 8px var(--accent-glow);
 }
 .toggle input:focus-visible + .toggle__track {
-  outline: 1px solid var(--signal);
+  outline: 1px solid var(--accent);
   outline-offset: 2px;
 }
 
@@ -212,7 +212,7 @@
 .slider input {
   flex: 1;
   min-width: 0; /* in a tight row the slider gives way, not the button beside it */
-  accent-color: var(--signal);
+  accent-color: var(--accent);
 }
 .slider .icon-button {
   flex: none;
@@ -233,14 +233,14 @@
   cursor: pointer;
 }
 .shortcut__keys:hover {
-  border-color: var(--signal);
+  border-color: var(--accent);
 }
 .shortcut__keys:focus-visible {
-  outline: 1px solid var(--signal);
+  outline: 1px solid var(--accent);
   outline-offset: 2px;
 }
 .shortcut__keys--recording {
-  border-color: var(--signal-hot);
+  border-color: var(--accent-hot);
 }
 .shortcut__word {
   font-family: var(--font-mono);

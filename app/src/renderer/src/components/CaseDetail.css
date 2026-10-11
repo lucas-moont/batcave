@@ -12,7 +12,7 @@
   gap: 8px;
   padding: 10px 12px 10px 6px;
   border-bottom: 1px solid var(--line);
-  background: linear-gradient(var(--smoke), transparent);
+  background: linear-gradient(in srgb, var(--smoke), transparent);
 }
 .detail__heading {
   display: grid;
@@ -51,12 +51,12 @@
   border: 1px solid var(--line);
   border-left: 3px solid var(--blood);
   border-radius: var(--radius);
-  background: rgb(139 0 0 / 8%);
+  background: color-mix(in srgb, var(--blood) 8%, transparent);
 }
 .alert--permission,
 .alert--error {
   border-left-color: var(--signal-hot);
-  background: rgb(175 0 6 / 12%);
+  background: color-mix(in srgb, var(--signal) 12%, transparent);
 }
 .alert__line {
   flex: 1;
@@ -94,7 +94,7 @@
   background: var(--surface);
 }
 .row:focus-visible {
-  outline: 1px solid var(--signal);
+  outline: 1px solid var(--accent);
 }
 .row > svg {
   color: var(--line);
@@ -129,21 +129,21 @@
 }
 
 .row--in_progress .row__glyph {
-  color: var(--signal-hot);
+  color: var(--in-progress);
 }
 .row--completed .row__glyph {
   color: var(--ash);
 }
 .row--completed .row__text {
-  color: #6f6862;
+  color: var(--ash-dim);
   text-decoration: line-through;
-  text-decoration-color: rgb(138 129 122 / 55%);
+  text-decoration-color: color-mix(in srgb, var(--ash) 55%, transparent);
 }
 .row--running .row__state {
-  color: var(--signal-hot);
+  color: var(--in-progress);
 }
 .row--failed .row__state {
-  color: #c9463d;
+  color: var(--brick);
 }
 
 .log {
@@ -160,7 +160,7 @@
   border-left: 1px solid var(--line);
 }
 .log__entry--assistant {
-  border-left-color: rgb(175 0 6 / 55%);
+  border-left-color: color-mix(in srgb, var(--accent) 55%, transparent);
 }
 .log__who {
   font-family: var(--font-type);
@@ -170,7 +170,7 @@
   color: var(--ash);
 }
 .log__text {
-  color: #cfc6be;
+  color: var(--bone-dim);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   display: -webkit-box;
@@ -185,7 +185,7 @@
 }
 @keyframes row-flash {
   0% {
-    background: rgb(227 18 27 / 35%);
+    background: color-mix(in srgb, var(--accent-hot) 35%, transparent);
   }
   100% {
     background: transparent;

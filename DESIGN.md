@@ -154,16 +154,16 @@ Bat-Signal has many Themes, each one version of Batman (the words are defined in
 A black-on-black noir palette with one family of reds that work as light and ink, plus one warm orange kept for the mascot.
 
 ### Primary
-- **Signal Red** (signal): the measured red of the film's title logo. Masthead wordmark, focus outlines in the files layout, checked toggles, card hover borders, the lit disc's lens, text selection.
+- **Signal Red** (signal): the measured red of the film's title logo. Through the accent: masthead wordmark, focus outlines in the files layout, checked toggles, card hover borders, text selection. Directly, as the alarm: the lit disc's lens and the needs-you counter.
 - **Hot Signal** (signal-hot): only for small lit things where Signal Red reads too dark on black: urgent card rules, active tab underline, live status dots, the in-progress task mark, the default stamp ink, the disc's count border.
 - **Signal Glow** (signal-glow): the translucent red used for every halo: card hover glow, header count, tab underline, sheet edge, toggle thumb.
 
 ### Secondary
 - **Dried Blood** (blood): the deep red of things that wait without urgency: waiting-card side rules, alert side rules, the danger hover on Quit, the Night Report margin rule (at 75% opacity), and the thread above the open cape's hem.
-- **Brick Ink** (brick): the softer stamp ink for waiting and new-reply items and failed runs. It is written as a literal in four places (cards, notice card, failed row) and is not a custom property.
+- **Brick Ink** (brick): the softer stamp ink for waiting and new-reply items and failed runs.
 
 ### Tertiary
-- **Clawd Orange** (clawd): Claude Code's own `clawd_body` color. Reserved for Bat-Clawd's body; the mascot's shade (#b85f42) and cowl (#0b0908) stay local to the mascot.
+- **Clawd Orange** (clawd): Claude Code's own `clawd_body` color. Reserved for Bat-Clawd's body; his shade (#b85f42) and the rest of his suit have their own variables (see Theme variables below).
 
 ### Neutral
 - **Abyss** (abyss): the page, the case detail and the intro. Everything starts here.
@@ -177,6 +177,20 @@ A black-on-black noir palette with one family of reds that work as light and ink
 
 ### Night Report inks
 - **Pen Hot** (ink-hot) and **Pen Soft** (ink-soft): Hot Signal and Brick Ink lifted just enough to reach 4.5:1 on black at stamp size. They ink the hand-drawn pen stroke and the margin stamps by tier. They are scoped to the report and do not replace the approved stamp inks in the files layout.
+
+### Theme variables
+Every color the renderer paints is a variable in `app/src/renderer/src/styles/theme.css`, named by role, so a Theme swaps the lot; `app/test/themeColors.test.ts` fails on a color written anywhere else. VENGEANCE sets most roles as aliases of the palette above, so the roles change nothing on screen:
+- **Accent** (accent, accent-hot, accent-deep, accent-glow): emphasis that is not an alarm: the wordmarks, focus outlines, selection, checked switches, the slider, card hover border and glow, the tab underline, the progress fill, the sheet's spill and the click ripple. VENGEANCE maps them to Signal Red, Hot Signal, Dried Blood and Signal Glow; another Theme can keep its Alarm color off them.
+- **Stamp inks by tier** (stamp-hot, stamp-soft, stamp-quiet): what files-layout stamps read, never an alarm shade directly. VENGEANCE: Hot Signal, Brick Ink, Ash. The Night Report keeps its pen inks.
+- **In progress** (in-progress, in-progress-glow): a task being worked on in the files layout: its glyph, its running state, its timeline step. VENGEANCE lights it in Hot Signal; another Theme can keep its Alarm color off running work.
+- **Danger** (danger, Dried Blood) for the Quit hover, and **Report rule** (report-rule, Dried Blood at 75%) for the margin rule.
+- **Text a step off** (bone-dim #cfc6be for log lines and idle titles, ash-dim #6f6862 for struck-through done tasks).
+- **Near-blacks** (surface-deep, frame, header-fade, sheet-top) for gradients and edges, and **Shadow** (shadow) for shadows and scrims.
+- **Bat-Clawd** (clawd-shade, clawd-eye, clawd-eye-dim, cowl, cowl-edge, cowl-shine, cape, cape-rim, thread, chest), named after the parts the prototype in #95 draws.
+- **The Signal** (glass-shine, glass, disc-rim-inner, disc-rim-outer, lens-core, lens-edge, lens-rim, lens-bat) and the **notice card** (notice-top, notice-foot, notice-hover-top, notice-hover-foot).
+- **The Atmosphere** (haze, haze-edge, grain-opacity, rain, searchlight). The rain is drawn on a canvas, which reads --rain at run time.
+
+Translucent variants are `color-mix()` on their token. Every gradient says `in srgb`, because a `color-mix()` inside one would otherwise switch it to Oklab and shift its pixels, and which tokens are mixes is up to each Theme. `app/test/themeContrast.test.ts` holds every text color to 4.5:1 on every dark ground it sits on (the page, the panels, the sheet and the notice card). VENGEANCE's approved colors that read under it (Signal Red as the wordmark, Hot Signal and Brick Ink as files-layout stamps, the pen inks off black, ash-dim and the decorative chevron) are listed there with their reasons, pending #97; new Themes get no exceptions.
 
 ### Named Rules
 **The Alarm Color Rule.** Every Theme keeps one Alarm color for "something needs you" and uses it nowhere else: the hottest color in its palette, or a red that suits the palette when nothing in it reads as an alarm. In VENGEANCE the Alarm color is red, which gives the next rule. Bat-Clawd's aura is the one place the Alarm color may wrap the mascot, and only while something needs you or in an iconic moment.

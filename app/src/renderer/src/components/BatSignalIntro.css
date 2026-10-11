@@ -22,11 +22,11 @@
   height: 120%;
   transform: translateX(-50%);
   background: conic-gradient(
-    from -12deg at 50% 100%,
+    from -12deg at 50% 100% in srgb,
     transparent 0deg,
-    rgb(232 225 217 / 10%) 6deg,
-    rgb(232 225 217 / 16%) 12deg,
-    rgb(232 225 217 / 10%) 18deg,
+    color-mix(in srgb, var(--searchlight) 10%, transparent) 6deg,
+    color-mix(in srgb, var(--searchlight) 16%, transparent) 12deg,
+    color-mix(in srgb, var(--searchlight) 10%, transparent) 18deg,
     transparent 24deg,
     transparent 360deg
   );
@@ -40,7 +40,11 @@
   margin-top: -18%;
   padding: 26px 34px;
   border-radius: 50%;
-  background: radial-gradient(closest-side, rgb(232 225 217 / 16%), transparent 72%);
+  background: radial-gradient(
+    closest-side in srgb,
+    color-mix(in srgb, var(--searchlight) 16%, transparent),
+    transparent 72%
+  );
   opacity: 0;
   animation: intro-flicker 1s steps(1) 0.25s forwards;
 }
@@ -51,8 +55,8 @@
   font-family: var(--font-display);
   font-size: 30px;
   letter-spacing: 8px;
-  color: var(--signal);
-  text-shadow: 0 0 18px var(--signal-glow);
+  color: var(--accent);
+  text-shadow: 0 0 18px var(--accent-glow);
   opacity: 0;
   animation: intro-flicker 0.9s steps(1) 0.45s forwards;
 }

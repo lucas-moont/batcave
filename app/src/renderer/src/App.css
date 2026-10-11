@@ -3,7 +3,7 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  border: 1px solid #1d1714;
+  border: 1px solid var(--frame);
   /* clip, not hidden: a hidden box can still be scrolled by the browser (to show a focused element
      that sticks out), which moves the whole panel out of the window. A clipped one can't be. */
   overflow: clip;
@@ -18,7 +18,7 @@
   gap: 9px;
   height: 54px;
   padding: 0 8px 0 14px;
-  background: linear-gradient(180deg, #0c0a09, rgb(0 0 0 / 0%));
+  background: linear-gradient(180deg in srgb, var(--header-fade), transparent);
   -webkit-app-region: drag;
 }
 .header__title {
@@ -28,8 +28,8 @@
   font-size: 21px;
   letter-spacing: 2.5px;
   line-height: 1;
-  color: var(--signal);
-  text-shadow: 0 0 14px rgb(175 0 6 / 35%);
+  color: var(--accent);
+  text-shadow: 0 0 14px color-mix(in srgb, var(--accent) 35%, transparent);
 }
 .header__brand {
   position: relative;
@@ -180,10 +180,10 @@
 }
 .icon-button--danger:hover {
   color: var(--bone);
-  background: var(--blood);
+  background: var(--danger);
 }
 .icon-button:focus-visible {
-  outline: 1px solid var(--signal);
+  outline: 1px solid var(--accent);
 }
 
 .tabs {
@@ -213,7 +213,7 @@
   color: var(--bone);
 }
 .tabs__tab:focus-visible {
-  outline: 1px solid var(--signal);
+  outline: 1px solid var(--accent);
   outline-offset: 2px;
 }
 .tabs__count {
@@ -228,8 +228,8 @@
   right: 0;
   bottom: -1px;
   height: 2px;
-  background: var(--signal-hot);
-  box-shadow: 0 0 8px var(--signal-glow);
+  background: var(--accent-hot);
+  box-shadow: 0 0 8px var(--accent-glow);
 }
 
 .stage {
@@ -295,7 +295,7 @@
   height: 10px;
   margin: -5px 0 0 -5px;
   border-radius: 50%;
-  background: rgb(175 0 6 / 45%);
+  background: var(--accent-glow);
   pointer-events: none;
   animation: ripple 0.45s ease-out forwards;
 }

@@ -34,6 +34,10 @@ _Avoid_: Theme, view, mode
 The one color a Theme keeps for "something needs you"; it appears nowhere else. It is the hottest color in the Theme's palette, and a red that suits the palette when the palette has no color that reads as an alarm.
 _Avoid_: Accent, brand color, "red"
 
+**Accent**:
+A Theme's color for emphasis that is not an alarm: the wordmark, focus, selection, switches, hover, the tab underline and progress. It never says that something needs the user.
+_Avoid_: Alarm color, highlight, primary
+
 **Voice**:
 The tone of a Theme's flavor text: empty states, headings, the night report. It never renames a term.
 _Avoid_: Copy, tone, strings

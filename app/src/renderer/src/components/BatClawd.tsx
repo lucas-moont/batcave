@@ -82,14 +82,14 @@ interface Pose {
 type Poses = readonly [Pose, ...Pose[]]
 
 const POSES: Record<MascotMood, Poses> = {
-  sleeping: [{ cape: 'wrapped', eyes: 'shut', eyeColor: 'var(--bone)' }],
+  sleeping: [{ cape: 'wrapped', eyes: 'shut', eyeColor: 'var(--clawd-eye)' }],
   flying: [
-    { cape: 'trailA', eyes: 'open', eyeColor: 'var(--bone)' },
-    { cape: 'trailB', eyes: 'open', eyeColor: 'var(--bone)' },
+    { cape: 'trailA', eyes: 'open', eyeColor: 'var(--clawd-eye)' },
+    { cape: 'trailB', eyes: 'open', eyeColor: 'var(--clawd-eye)' },
   ],
   alarmed: [
-    { cape: 'open', eyes: 'open', eyeColor: 'var(--bone)' },
-    { cape: 'open', eyes: 'open', eyeColor: 'rgb(232 225 217 / 18%)' },
+    { cape: 'open', eyes: 'open', eyeColor: 'var(--clawd-eye)' },
+    { cape: 'open', eyes: 'open', eyeColor: 'var(--clawd-eye-dim)' },
   ],
 }
 
@@ -135,7 +135,7 @@ function Frame({ pose, gaze, className }: { pose: Pose; gaze: { x: number; y: nu
         </>
       )}
       <g fill="var(--cowl)">{rects(COWL)}</g>
-      <g fill="var(--raised)">{rects(COWL_SHINE)}</g>
+      <g fill="var(--cowl-shine)">{rects(COWL_SHINE)}</g>
       <g fill={pose.eyeColor} transform={`translate(${gaze.x} ${gaze.y})`}>
         {rects(pose.eyes === 'open' ? EYES_OPEN : EYES_SHUT)}
       </g>

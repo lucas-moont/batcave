@@ -240,7 +240,7 @@ function Disc({
     >
       {pulsing ? <Glow className="disc__halo" /> : <span className="disc__halo" aria-hidden />}
       <span className="disc__face">
-        <BatEmblem size={44} title="" fill={lit ? '#050000' : 'var(--raised)'} />
+        <BatEmblem size={44} title="" fill={lit ? 'var(--lens-bat)' : 'var(--raised)'} />
       </span>
       <AnimatePresence>
         {count > 0 && (
