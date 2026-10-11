@@ -84,6 +84,14 @@ function start(): void {
     // Only a patch that names the shortcut touches it (and retries it, if another app had it).
     if ('shortcut' in obj(patch)) shortcut.apply(settings.shortcut)
   })
+  // settings.json edited by hand (until the Theme picker, that's how a Theme changes) applies at once.
+  settingsFile.watch((next) => {
+    const shortcutChanged = next.shortcut !== settings.shortcut
+    settings = next
+    if (settings.announce.sound) warmQuiet()
+    windows.apply(settings)
+    if (shortcutChanged) shortcut.apply(settings.shortcut)
+  })
   handleIpc(IPC.getStatus, () => readStatus())
   // The settings sheet opened: what it shows is read again from Windows (Task Manager may have
   // moved the switch since); a change goes out as status.
