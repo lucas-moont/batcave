@@ -1,4 +1,4 @@
-import { readFileSync, watch, writeFileSync } from 'node:fs'
+import { readFileSync, watch, writeFileSync, type FSWatcher } from 'node:fs'
 import { join } from 'node:path'
 import { app } from 'electron'
 
@@ -59,7 +59,7 @@ export function jsonFile<T>(name: string, parse: (raw: unknown) => T) {
      */
     watch(onChange: (value: T) => void): () => void {
       let settle: NodeJS.Timeout | undefined
-      const watcher = watch(join(path(), '..'), (_event, file) => {
+      const changed = (_event: string, file: string | null) => {
         if (file !== name) return
         clearTimeout(settle)
         settle = setTimeout(() => {
@@ -71,10 +71,18 @@ export function jsonFile<T>(name: string, parse: (raw: unknown) => T) {
           pending = undefined
           onChange(parsed(text))
         }, SETTLE_MS)
-      })
+      }
+      let watcher: FSWatcher | undefined
+      try {
+        watcher = watch(join(path(), '..'), changed)
+        // The folder went away (or Windows refused the handle): hand edits stop applying, nothing else.
+        watcher.on('error', () => watcher?.close())
+      } catch (err) {
+        console.warn(`[bat-signal] can't watch ${name} for hand edits:`, err)
+      }
       return () => {
         clearTimeout(settle)
-        watcher.close()
+        watcher?.close()
       }
     },
     save,
