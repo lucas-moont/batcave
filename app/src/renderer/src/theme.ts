@@ -3,6 +3,7 @@
 // emblem). Free of the bridge, so any component can read it and still render in a node test.
 import { createContext, createElement, useContext, useEffect, type ReactNode } from 'react'
 import { DEFAULT_THEME, isThemeId, type ThemeId } from '@shared/themes'
+import { loadFonts } from './styles/themes/fonts'
 
 /** The Theme in the page's address (?theme=…), as the main process opens a window; else the default. */
 export function themeFromSearch(search: string): ThemeId {
@@ -20,8 +21,17 @@ const ThemeContext = createContext<ThemeId>(DEFAULT_THEME)
 /** The Theme the page wears: the default outside a Wearing (a component rendered on its own). */
 export const useTheme = (): ThemeId => useContext(ThemeContext)
 
-/** Wears the settings' Theme from here down, and on the page itself, changing live with the setting. */
+/**
+ * Wears the settings' Theme from here down, and on the page itself, changing live with the
+ * setting: its faces load, then the page takes its colors, so text never sits in a fallback face.
+ */
 export function Wearing({ theme, children }: { theme: ThemeId; children: ReactNode }) {
-  useEffect(() => wearTheme(document.documentElement, theme), [theme])
+  useEffect(() => {
+    let live = true
+    void loadFonts(theme).finally(() => live && wearTheme(document.documentElement, theme))
+    return () => {
+      live = false
+    }
+  }, [theme])
   return createElement(ThemeContext, { value: theme }, children)
 }
