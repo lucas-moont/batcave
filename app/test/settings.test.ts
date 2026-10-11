@@ -41,9 +41,10 @@ describe('parseSettings: whatever the file holds', () => {
 })
 
 describe('parseSettings: a file from before Phase 4', () => {
-  it('keeps what the user chose and turns every new announcement off', () => {
+  it('keeps what the user chose, turns every new announcement off and wears the default Theme', () => {
     expect(parseSettings(OLD_FILE)).toEqual({
       ...OLD_FILE,
+      theme: 'the-batman-2022',
       shortcut: 'Ctrl+Alt+B',
       announce: {
         toast: { needsYou: false, reply: false, taskDone: false, sessions: false },
