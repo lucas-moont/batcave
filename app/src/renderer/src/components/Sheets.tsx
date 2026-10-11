@@ -383,8 +383,7 @@ export function SettingsSheet({
             {NEWS_GROUPS.map((group) => (
               <Toggle
                 key={group}
-                label={say.toast[group].label(terms)}
-                hint={say.toast[group].hint(terms)}
+                {...say.toast[group]}
                 on={settings.announce.toast[group]}
                 onChange={(on) => onChange({ announce: { toast: { [group]: on } } })}
               />
