@@ -118,19 +118,19 @@
 
 /* An ink stamp: typewriter caps in a box, slightly crooked, a little worn. */
 .stamp {
-  font-family: var(--font-type);
+  font-family: var(--font-stamp);
   font-size: 11px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--stamp-hot);
-  border: 1.5px solid currentColor;
+  border: var(--stamp-border) solid currentColor;
   border-radius: 2px;
   /* The typewriter face sits high in its line: more room above than below centres the words. */
   padding: 3px 6px 1px;
   line-height: 1.1;
-  transform: rotate(-2.5deg);
+  transform: rotate(var(--stamp-tilt));
   opacity: 0.92;
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='40'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.6' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -3 2.6'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  mask-image: var(--stamp-mask);
 }
 .card--waiting .stamp,
 .card--reply .stamp {
