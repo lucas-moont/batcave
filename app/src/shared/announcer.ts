@@ -3,7 +3,7 @@
 // the snapshots and the moment's context, gathers each burst (BURST_MS), and makes one toast and
 // one sound of it.
 import { byUrgency, diffNotices, freshen, type Notice, type NoticeKind } from './notices'
-import { STANDARD_WORDS } from './words'
+import { STANDARD_WORDS, TOAST_WORDS } from './words'
 import type { AnnouncePrefs, NewsGroup } from './settings'
 import type { StoreSnapshot } from './types'
 
@@ -108,6 +108,6 @@ export function toastFor(news: readonly Notice[]): Toast | undefined {
   return {
     ...(first.kind !== 'session-closed' && { sessionId: first.sessionId }),
     title: `${first.stamp} · ${first.title}`,
-    body: rest.length ? `${first.line}\n+${rest.length} more` : first.line,
+    body: rest.length ? `${first.line}\n${TOAST_WORDS.more(rest.length)}` : first.line,
   }
 }

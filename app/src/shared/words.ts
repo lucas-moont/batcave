@@ -423,5 +423,11 @@ export const STANDARD_VOICE: Voice = {
   noticeLine: { opened: 'New session', closed: 'Session ended' },
 }
 
+/** A Windows toast's own words, beyond the cards' ones it reuses. Standard always, like the tray. */
+export const TOAST_WORDS = {
+  /** The other news in the same burst. */
+  more: (n: number) => `+${n} more`,
+}
+
 /** The words of every surface that never follows a Theme, and of the default Theme. */
 export const STANDARD_WORDS: Words = { terms: STANDARD_TERMS, voice: STANDARD_VOICE }
