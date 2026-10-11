@@ -55,7 +55,7 @@ export function TerminalButton({
         title={voice.terminal.go}
       >
         <Icon name="terminal" />
-        {labelled && <span>{voice.detail.terminal}</span>}
+        {labelled && <span>{voice.terminal.label}</span>}
       </button>
       {copied && (
         <span className="terminal-button__note" role="status">

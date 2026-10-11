@@ -58,7 +58,6 @@ export interface Voice {
   /** The case detail: its back button, its terminal button, its sections. */
   detail: {
     back: string
-    terminal: string
     tasks: string
     subagents: string
     background: string
@@ -156,6 +155,8 @@ export interface Voice {
     nil: (t: Terms) => string
   }
   terminal: {
+    /** The word beside the icon, where there is room for one. */
+    label: string
     go: string
     /** No window hosts the session, so the command that resumes it went to the clipboard. */
     copied: string
@@ -269,7 +270,7 @@ export const STANDARD_TERMS: Terms = {
 }
 
 export const STANDARD_VOICE: Voice = {
-  wordmark: 'BAT-SIGNAL',
+  wordmark: PRODUCT.toUpperCase(),
   chrome: {
     toWatch: 'Shrink to the watch strip',
     toDisc: 'Fold into the signal disc',
@@ -288,7 +289,6 @@ export const STANDARD_VOICE: Voice = {
   },
   detail: {
     back: 'Back to the list',
-    terminal: 'Terminal',
     tasks: 'Tasks',
     subagents: 'Subagents',
     background: 'In the background',
@@ -396,7 +396,11 @@ export const STANDARD_VOICE: Voice = {
     openPanel: 'Open the full panel',
     nil: (t) => `No open ${lower(t.case.many)}. Start Claude Code in a terminal to follow it here.`,
   },
-  terminal: { go: 'Go to the terminal', copied: 'No window found. Resume command copied.' },
+  terminal: {
+    label: 'Terminal',
+    go: 'Go to the terminal',
+    copied: 'No window found. Resume command copied.',
+  },
   pluginHint: {
     title: (sessions) =>
       `No word from the ${PRODUCT} plugin for ${sessions === 1 ? 'one session' : `${sessions} sessions`}.`,
